@@ -21,7 +21,7 @@ export default {
   methods: {
     async fetchPlugins() {
       try {
-        const response = await fetch('/homebridge_plugins.json');
+        const response = await fetch('https://developers.homebridge.io/analytics/homebridge_plugins.json');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
