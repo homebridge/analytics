@@ -32,10 +32,10 @@
       <label>Engine Node: <input v-model="filters.node" placeholder="Filter by engine node" /></label>
       <label>Engine Homebridge: <input v-model="filters.homebridge" placeholder="Filter by engine homebridge" /></label>
       <label>Homebridge 2.0 Ready: 
-        <select v-model="filters.homebridgeCompatibility">
+        <select v-model="filters.homebridge2Compatibility">
           <option value="">All</option>
-          <option value="supported">Supported</option>
-          <option value="not ready">Not Ready</option>
+          <option value="Supported">Supported</option>
+          <option value="Not ready">Not Ready</option>
         </select>
       </label>
 
@@ -58,7 +58,6 @@
       <table>
         <thead>
           <tr>
-            <!-- Existing columns -->
             <th :class="getHeaderClass('name')" @click="sortTable('name')">Name</th>
             <th :class="getHeaderClass('description')" @click="sortTable('description')">Description</th>
             <th :class="getHeaderClass('version')" @click="sortTable('version')">Version</th>
@@ -68,16 +67,12 @@
             <th :class="getHeaderClass('lastUpdated')" @click="sortTable('lastUpdated')">Last Updated</th>
             <th :class="getHeaderClass('engines.node')" @click="sortTable('engines.node')">Engine Node</th>
             <th :class="getHeaderClass('engines.homebridge')" @click="sortTable('engines.homebridge')">Engine Homebridge</th>
-            <th :class="getHeaderClass('homebridgeCompatibility')" @click="sortTable('homebridgeCompatibility')">Homebridge 2.0 Ready</th>
-            <th :class="getHeaderClass('latestRelease')" @click="sortTable('latestRelease')">Latest Release</th>
-
-            <!-- New "Verified" column -->
+            <th :class="getHeaderClass('homebridge2Compatibility')" @click="sortTable('homebridge2Compatibility')">Homebridge 2.0 Ready</th>
             <th :class="getHeaderClass('verified')" @click="sortTable('verified')">Verified</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="plugin in sortedPlugins" :key="plugin.name" @click="selectPlugin(plugin)">
-            <!-- Existing columns -->
             <td><a :href="'https://www.npmjs.com/package/' + plugin.name" target="_blank">{{ plugin.name }}</a></td>
             <td>{{ plugin.description }}</td>
             <td>{{ plugin.version }}</td>
@@ -87,10 +82,7 @@
             <td>{{ new Date(plugin.lastUpdated).toLocaleDateString() }}</td>
             <td>{{ plugin.engines.node }}</td>
             <td>{{ plugin.engines.homebridge }}</td>
-            <td>{{ isHomebridgeCompatible(plugin) }}</td>
-            <td>{{ plugin.latestRelease }}</td>
-
-            <!-- New "Verified" column -->
+            <td>{{ isHomebridge2Ready(plugin) }}</td>
             <td>{{ plugin.verified ? 'Verified' : 'Not Verified' }}</td>
           </tr>
         </tbody>
@@ -116,8 +108,8 @@ export default {
         lastUpdated: "",
         node: "",
         homebridge: "",
-        homebridgeCompatibility: "",
-        verified: "" // New verified filter
+        homebridge2Compatibility: "",
+        verified: ""
       },
       downloadsComparison: 'equal',
       createdComparison: 'after',
@@ -148,10 +140,9 @@ export default {
         const nodeCondition = this.filters.node === "" || (plugin.engines.node && plugin.engines.node.toLowerCase().includes(this.filters.node.toLowerCase()));
         const homebridgeCondition = this.filters.homebridge === "" || (plugin.engines.homebridge && plugin.engines.homebridge.toLowerCase().includes(this.filters.homebridge.toLowerCase()));
         
-        const compatibilityCondition = this.filters.homebridgeCompatibility === "" || 
-          (this.isHomebridgeCompatible(plugin) === this.filters.homebridgeCompatibility);
+        const compatibilityCondition = this.filters.homebridge2Compatibility === "" || 
+          (this.isHomebridge2Ready(plugin) === this.filters.homebridge2Compatibility);
 
-        // New verified condition
         const verifiedCondition = this.filters.verified === "" || (plugin.verified === (this.filters.verified === "true"));
 
         return (
@@ -165,7 +156,7 @@ export default {
           nodeCondition &&
           homebridgeCondition &&
           compatibilityCondition &&
-          verifiedCondition // Added to the filters
+          verifiedCondition
         );
       });
     },
@@ -203,9 +194,12 @@ export default {
         lastUpdated: "",
         node: "",
         homebridge: "",
-        homebridgeCompatibility: "",
-        verified: "" // Reset verified filter
+        homebridge2Compatibility: "",
+        verified: ""
       };
+      this.downloadsComparison = 'equal';
+      this.createdComparison = 'after';
+      this.lastUpdatedComparison = 'after';
     },
     sortTable(key) {
       if (this.sortKey === key) {
@@ -215,87 +209,65 @@ export default {
         this.sortOrder = 'asc';
       }
     },
-    isHomebridgeCompatible(plugin) {
-      const hbEngines = plugin.engines?.homebridge?.split('||').map((x) => x.trim()) || [];
-      return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'supported' : 'not ready';
+    getHeaderClass(key) {
+      return { 'asc': this.sortKey === key && this.sortOrder === 'asc', 'desc': this.sortKey === key && this.sortOrder === 'desc' };
     },
     getSortValue(plugin) {
-      const keys = this.sortKey.split(".");
-      let value = plugin;
-      keys.forEach(key => {
-        value = value[key];
-      });
-      return value;
+      const sortValue = plugin[this.sortKey];
+      return typeof sortValue === 'string' ? sortValue.toLowerCase() : sortValue;
     },
-    getHeaderClass(key) {
-      return {
-        active: this.sortKey === key,
-        asc: this.sortKey === key && this.sortOrder === 'asc',
-        desc: this.sortKey === key && this.sortOrder === 'desc'
-      };
+    isHomebridge2Ready(plugin) {
+      const hbEngines = plugin.engines?.homebridge?.split('||').map((x) => x.trim()) || [];
+      return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'Supported' : 'Not ready';
     }
   }
 };
 </script>
 
 <style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centers the container content horizontally */
-  margin: 0 auto;
-  width: 100%; /* Ensures the container takes the full width */
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling on the body */
 }
 
-h1 {
+.container {
+  width: 2500px; /* Fixed width to match table width */
+  margin: 0 auto; /* Center the container */
+  padding: 0 20px; /* Optional padding for the container */
+}
+
+.filters {
   margin-bottom: 20px;
 }
 
 .table-container {
-  width: 100%; /* Full width */
-  display: flex; /* Flex display to help center contents */
-  justify-content: center; /* Centers the table */
+  width: 100%;
+  overflow-x: auto; /* Allow horizontal scrolling if necessary */
 }
 
-table {
-  width: 80%; /* Adjust this width as needed */
-  max-width: 100%; /* Ensures it does not exceed container width */
+.table-container table {
+  width: 2500px; /* Fixed width table */
   border-collapse: collapse;
-  margin: 20px 0; /* Add some margin for spacing */
 }
 
-table, th, td {
-  border: 1px solid black;
-}
-
-th, td {
+.table-container th,
+.table-container td {
   padding: 8px;
   text-align: left;
+  border: 1px solid #ccc;
+}
+
+.table-container th {
   cursor: pointer;
 }
 
-th:hover {
-  background-color: #f2f2f2;
+.asc::after {
+  content: " ▲"; /* Ascending indicator */
 }
 
-input, select {
-  margin: 5px 10px 20px 0;
-}
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center; /* Centers the filters horizontally */
-}
-
-.summary {
-  margin: 10px 0;
-}
-
-/* Optional: Add some styles for responsiveness */
-@media (max-width: 600px) {
-  table {
-    width: 100%; /* Full width on smaller screens */
-  }
+.desc::after {
+  content: " ▼"; /* Descending indicator */
 }
 </style>
