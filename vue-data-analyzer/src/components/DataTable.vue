@@ -253,12 +253,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.active-filter {
-  font-weight: bold;
-  color: green;
-}
-
-/* Add any other styles you need for the table */
-</style>

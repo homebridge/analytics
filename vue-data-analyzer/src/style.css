@@ -112,11 +112,11 @@ button:focus-visible {
   cursor: pointer;
 }
 
-.asc::after {
+.sorted-asc::after {
   content: " ▲"; /* Ascending indicator */
 }
 
-.desc::after {
+.sorted-desc::after {
   content: " ▼"; /* Descending indicator */
 }
 
@@ -124,4 +124,9 @@ button:focus-visible {
   font-weight: bold;
   background-color: #f0f8ff;
   border: 1px solid #007bff;
+}
+
+.active-filter {
+  font-weight: bold;
+  color: green;
 }
