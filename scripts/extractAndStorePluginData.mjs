@@ -100,6 +100,11 @@ async function getReleaseDownloads() {
   }
 }
 
+function isHomebridge2Ready(plugin) {
+  const hbEngines = plugin.engines?.homebridge?.split('||').map((x) => x.trim()) || [];
+  return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'Supported' : 'Not ready';
+}
+
 // Fetch the full package metadata and download stats
 async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads) {
   console.log(`Fetching package details data for ${packageName}...`);
@@ -130,6 +135,7 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
     const displayName = versionData.displayName || packageName;
     const owner = (author === 'Not supplied') ? maintainers.join(', ') : author;
     const npmDownloads = downloadStats.downloads || 0;
+    const homebridge2ready = isHomebridge2Ready(versionData);
 
     // Check if the plugin is verified
     const verified = verifiedPlugins.includes(packageName);
@@ -155,6 +161,7 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
       verified,  // Include verified status
       npmDownloads,
       githubDownloads: githubDownloadCount, // Track GitHub downloads separately
+      homebridge2ready,
     };
 
   } catch (error) {
@@ -166,10 +173,11 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
 // Main function to extract and store plugin data
 async function extractAndStoreData() {
   const allPluginNames = await getHomebridgePlugins();
+  fs.writeFileSync('../allPluginNames.json', JSON.stringify(allPluginNames, null, 2));
   const verifiedPlugins = await getVerifiedPlugins();
   const githubDownloads = await getReleaseDownloads();
 
-  // fs.writeFileSync('../githubDownload.json', JSON.stringify(githubDownloads, null, 2));
+  fs.writeFileSync('../githubDownload.json', JSON.stringify(githubDownloads, null, 2));
   // Limit concurrent requests with pLimit
   const pluginsWithDetails = await Promise.all(
     allPluginNames.map(packageName =>
