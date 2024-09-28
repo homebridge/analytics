@@ -5,7 +5,7 @@
 - Latest Release within 12 months: Thu Sep 28 2023 - Sat Sep 28 2024
 - Homebridge 2 Ready: Supported
 
-**Total Plugins Homebridge 2 Ready:** 85
+**Total Plugins Homebridge 2 Ready:** 85<br>
 **Total Plugins Not Homebridge 2 Ready:** 165
 
 | Name | Owner | Latest Release | Verified | Homebridge 2 Status |

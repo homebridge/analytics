@@ -36,7 +36,7 @@ function generateMarkdownReport(data) {
   // Create the markdown content
   let markdownContent = `# Plugin Summary Report - ${currentDate.toDateString()}\n\n`;
   markdownContent += `**Filters Applied:**\n- Verified: true\n- Latest Release within 12 months: ${twelveMonthsAgo.toDateString()} - ${currentDate.toDateString()}\n- Homebridge 2 Ready: Supported\n\n`;
-  markdownContent += `**Total Plugins Homebridge 2 Ready:** ${hb2ReadyCount}\n`;
+  markdownContent += `**Total Plugins Homebridge 2 Ready:** ${hb2ReadyCount}<br>\n`;
   markdownContent += `**Total Plugins Not Homebridge 2 Ready:** ${hb2NotReadyCount}\n\n`;
   markdownContent += '| Name | Owner | Latest Release | Verified | Homebridge 2 Status |\n';
   markdownContent += '| ---- | ----- | -------------- | -------- | ------------------- |\n';
