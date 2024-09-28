@@ -2,12 +2,19 @@
   <div class="container">
     <h1>Homebridge Plugins</h1>
     <div class="filters">
-      <!-- Existing filters -->
-      <label>Name: <input v-model="filters.name" placeholder="Filter by name" /></label>
-      <label>Description: <input v-model="filters.description" placeholder="Filter by description" /></label>
-      <label>Version: <input v-model="filters.version" placeholder="Filter by version" /></label>
-      <label>Owner: <input v-model="filters.owner" placeholder="Filter by owner" /></label>
-      <label>Downloads: 
+      <label :class="{ 'active-filter': filters.name }">Name: 
+        <input v-model="filters.name" placeholder="Filter by name" />
+      </label>
+      <label :class="{ 'active-filter': filters.description }">Description: 
+        <input v-model="filters.description" placeholder="Filter by description" />
+      </label>
+      <label :class="{ 'active-filter': filters.version }">Version: 
+        <input v-model="filters.version" placeholder="Filter by version" />
+      </label>
+      <label :class="{ 'active-filter': filters.owner }">Owner: 
+        <input v-model="filters.owner" placeholder="Filter by owner" />
+      </label>
+      <label :class="{ 'active-filter': filters.downloads }">Downloads: 
         <select v-model="downloadsComparison">
           <option value="equal">=</option>
           <option value="greater">></option>
@@ -15,32 +22,34 @@
         </select>
         <input v-model.number="filters.downloads" placeholder="Filter by downloads" />
       </label>
-      <label>Created: 
+      <label :class="{ 'active-filter': filters.created }">Created: 
         <select v-model="createdComparison">
           <option value="after">After</option>
           <option value="before">Before</option>
         </select>
         <input type="date" v-model="filters.created" />
       </label>
-      <label>Last Updated: 
+      <label :class="{ 'active-filter': filters.lastUpdated }">Last Updated: 
         <select v-model="lastUpdatedComparison">
           <option value="after">After</option>
           <option value="before">Before</option>
         </select>
         <input type="date" v-model="filters.lastUpdated" />
       </label>
-      <label>Engine Node: <input v-model="filters.node" placeholder="Filter by engine node" /></label>
-      <label>Engine Homebridge: <input v-model="filters.homebridge" placeholder="Filter by engine homebridge" /></label>
-      <label>Homebridge 2.0 Ready: 
+      <label :class="{ 'active-filter': filters.node }">Engine Node: 
+        <input v-model="filters.node" placeholder="Filter by engine node" />
+      </label>
+      <label :class="{ 'active-filter': filters.homebridge }">Engine Homebridge: 
+        <input v-model="filters.homebridge" placeholder="Filter by engine homebridge" />
+      </label>
+      <label :class="{ 'active-filter': filters.homebridge2Compatibility }">Homebridge 2.0 Ready: 
         <select v-model="filters.homebridge2Compatibility">
           <option value="">All</option>
           <option value="Supported">Supported</option>
           <option value="Not ready">Not Ready</option>
         </select>
       </label>
-
-      <!-- New Verified filter -->
-      <label>Verified: 
+      <label :class="{ 'active-filter': filters.verified }">Verified: 
         <select v-model="filters.verified">
           <option value="">All</option>
           <option value="true">Verified</option>
@@ -200,6 +209,32 @@ export default {
       this.downloadsComparison = 'equal';
       this.createdComparison = 'after';
       this.lastUpdatedComparison = 'after';
+      this.sortKey = null;
+      this.sortOrder = 'asc';
+    },
+    getSortValue(plugin) {
+      switch (this.sortKey) {
+        case 'downloads':
+          return plugin.downloads;
+        case 'created':
+          return new Date(plugin.created);
+        case 'lastUpdated':
+          return new Date(plugin.lastUpdated);
+        case 'engines.node':
+          return plugin.engines.node || "";
+        case 'engines.homebridge':
+          return plugin.engines.homebridge || "";
+        case 'homebridge2Compatibility':
+          return this.isHomebridge2Ready(plugin);
+        case 'verified':
+          return plugin.verified;
+        default:
+          return plugin[this.sortKey] || "";
+      }
+    },
+    isHomebridge2Ready(plugin) {
+      const hbEngines = plugin.engines?.homebridge?.split('||').map((x) => x.trim()) || [];
+      return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'Supported' : 'Not ready';
     },
     sortTable(key) {
       if (this.sortKey === key) {
@@ -210,64 +245,20 @@ export default {
       }
     },
     getHeaderClass(key) {
-      return { 'asc': this.sortKey === key && this.sortOrder === 'asc', 'desc': this.sortKey === key && this.sortOrder === 'desc' };
-    },
-    getSortValue(plugin) {
-      const sortValue = plugin[this.sortKey];
-      return typeof sortValue === 'string' ? sortValue.toLowerCase() : sortValue;
-    },
-    isHomebridge2Ready(plugin) {
-      const hbEngines = plugin.engines?.homebridge?.split('||').map((x) => x.trim()) || [];
-      return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'Supported' : 'Not ready';
+      return {
+        'sorted-asc': this.sortKey === key && this.sortOrder === 'asc',
+        'sorted-desc': this.sortKey === key && this.sortOrder === 'desc',
+      };
     }
   }
 };
 </script>
 
 <style scoped>
-body, html {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  overflow-x: hidden; /* Prevent horizontal scrolling on the body */
+.active-filter {
+  font-weight: bold;
+  color: green;
 }
 
-.container {
-  width: 2500px; /* Fixed width to match table width */
-  margin: 0 auto; /* Center the container */
-  padding: 0 20px; /* Optional padding for the container */
-}
-
-.filters {
-  margin-bottom: 20px;
-}
-
-.table-container {
-  width: 100%;
-  overflow-x: auto; /* Allow horizontal scrolling if necessary */
-}
-
-.table-container table {
-  width: 2500px; /* Fixed width table */
-  border-collapse: collapse;
-}
-
-.table-container th,
-.table-container td {
-  padding: 8px;
-  text-align: left;
-  border: 1px solid #ccc;
-}
-
-.table-container th {
-  cursor: pointer;
-}
-
-.asc::after {
-  content: " ▲"; /* Ascending indicator */
-}
-
-.desc::after {
-  content: " ▼"; /* Descending indicator */
-}
+/* Add any other styles you need for the table */
 </style>
