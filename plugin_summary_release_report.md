@@ -1,8 +1,8 @@
-# Plugin Summary Report (Based on Latest Release) - Fri Oct 24 2025
+# Plugin Summary Report (Based on Latest Release) - Sat Oct 25 2025
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Thu Oct 24 2024 - Fri Oct 24 2025
+- Latest Release within 12 months: Fri Oct 25 2024 - Sat Oct 25 2025
 - Homebridge 2 Ready: Supported
 
 **Total Plugins Homebridge 2 Ready:** 238<br>
@@ -10,37 +10,37 @@
 
 | Name | Owner | Latest Release | Downloads | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @homebridge-plugins/homebridge-tuya | donavanbecker, northernman, bwp91 | 2025-09-28T15:01:23.582Z | 116 | true | Not ready |
-| homebridge-ahoy-dtu | Christian Braun | 2025-09-15T21:26:23.612Z | 108 | true | Not ready |
-| homebridge-airzone-cloud | Francisco Javier Horrillo Sancho | 2025-01-30T21:45:01.614Z | 340 | true | Not ready |
-| homebridge-alphaess | zerwuffa | 2025-01-22T15:50:46.462Z | 1761 | true | Not ready |
-| homebridge-ambient-weather-sensors | peledies | 2025-02-24T20:28:52.228Z | 281 | true | Not ready |
-| homebridge-blauberg-vento | paul_mt | 2024-11-19T11:27:07.423Z | 65 | true | Not ready |
-| homebridge-bond | Aaron Sapp | 2025-03-25T23:26:21.626Z | 2335 | true | Not ready |
-| homebridge-comelit-platform | Pierpaolo Follia | 2025-07-11T08:17:09.332Z | 97 | true | Not ready |
-| homebridge-dahua-alarm | jbrowne44 | 2024-10-26T02:59:34.062Z | 475 | true | Not ready |
-| homebridge-ecoforest-thermostat | Cyber MrProper | 2024-12-19T14:35:39.913Z | 15 | true | Not ready |
-| homebridge-edomoticz | PatchworkBoy | 2025-06-19T19:35:12.797Z | 859 | true | Not ready |
-| homebridge-evohome | luc-ass | 2024-12-12T15:02:24.948Z | 582 | true | Not ready |
-| homebridge-flobymoen | Haywirecoder | 2025-06-14T13:53:13.129Z | 414 | true | Not ready |
-| homebridge-frigidaire-dehumidifier | Haywirecoder | 2025-07-17T01:26:35.160Z | 83 | true | Not ready |
-| homebridge-futurehome | adrianjagielak | 2025-07-19T00:32:47.291Z | 41 | true | Not ready |
-| homebridge-homewizard-energy-socket | Jordy van den Aardweg | 2024-12-20T08:07:41.658Z | 427 | true | Not ready |
-| homebridge-jablotron | Fred de Gier | 2025-02-21T20:44:43.622Z | 191 | true | Not ready |
-| homebridge-kasa-hub | zmx264 | 2025-09-03T17:19:16.608Z | 627 | true | Not ready |
-| homebridge-kiwigrid | Andreas Wäscher | 2025-01-30T13:33:07.037Z | 73 | true | Not ready |
-| homebridge-leviton | tabrindle@gmail.com | 2025-01-22T20:30:00.940Z | 869 | true | Not ready |
-| homebridge-levoit-humidifiers | Paul Schroeder | 2025-09-23T16:29:41.160Z | 868 | true | Not ready |
-| homebridge-mi-hygrothermograph | Hannes Ljungberg | 2025-01-20T18:12:06.625Z | 1116 | true | Not ready |
-| homebridge-mitsubishi-wfrac | Sam Bates | 2025-05-13T19:58:33.089Z | 10 | true | Not ready |
+| @homebridge-plugins/homebridge-tuya | donavanbecker, northernman, bwp91 | 2025-09-28T15:01:23.582Z | 146 | true | Not ready |
+| homebridge-ahoy-dtu | Christian Braun | 2025-09-15T21:26:23.612Z | 48 | true | Not ready |
+| homebridge-airzone-cloud | Francisco Javier Horrillo Sancho | 2025-01-30T21:45:01.614Z | 316 | true | Not ready |
+| homebridge-alphaess | zerwuffa | 2025-01-22T15:50:46.462Z | 441 | true | Not ready |
+| homebridge-ambient-weather-sensors | peledies | 2025-02-24T20:28:52.228Z | 264 | true | Not ready |
+| homebridge-blauberg-vento | paul_mt | 2024-11-19T11:27:07.423Z | 51 | true | Not ready |
+| homebridge-bond | Aaron Sapp | 2025-03-25T23:26:21.626Z | 2289 | true | Not ready |
+| homebridge-comelit-platform | Pierpaolo Follia | 2025-07-11T08:17:09.332Z | 61 | true | Not ready |
+| homebridge-dahua-alarm | jbrowne44 | 2024-10-26T02:59:34.062Z | 181 | true | Not ready |
+| homebridge-ecoforest-thermostat | Cyber MrProper | 2024-12-19T14:35:39.913Z | 9 | true | Not ready |
+| homebridge-edomoticz | PatchworkBoy | 2025-06-19T19:35:12.797Z | 742 | true | Not ready |
+| homebridge-evohome | luc-ass | 2024-12-12T15:02:24.948Z | 509 | true | Not ready |
+| homebridge-flobymoen | Haywirecoder | 2025-06-14T13:53:13.129Z | 398 | true | Not ready |
+| homebridge-frigidaire-dehumidifier | Haywirecoder | 2025-07-17T01:26:35.160Z | 57 | true | Not ready |
+| homebridge-futurehome | adrianjagielak | 2025-07-19T00:32:47.291Z | 22 | true | Not ready |
+| homebridge-homewizard-energy-socket | Jordy van den Aardweg | 2024-12-20T08:07:41.658Z | 368 | true | Not ready |
+| homebridge-jablotron | Fred de Gier | 2025-02-21T20:44:43.622Z | 138 | true | Not ready |
+| homebridge-kasa-hub | zmx264 | 2025-09-03T17:19:16.608Z | 597 | true | Not ready |
+| homebridge-kiwigrid | Andreas Wäscher | 2025-01-30T13:33:07.037Z | 65 | true | Not ready |
+| homebridge-leviton | tabrindle@gmail.com | 2025-01-22T20:30:00.940Z | 859 | true | Not ready |
+| homebridge-levoit-humidifiers | Paul Schroeder | 2025-09-23T16:29:41.160Z | 739 | true | Not ready |
+| homebridge-mi-hygrothermograph | Hannes Ljungberg | 2025-01-20T18:12:06.625Z | 1083 | true | Not ready |
+| homebridge-mitsubishi-wfrac | Sam Bates | 2025-05-13T19:58:33.089Z | 11 | true | Not ready |
 | homebridge-multiple-switch | Azad Aydınlı | 2025-07-07T23:21:45.042Z | 66 | true | Not ready |
-| homebridge-nuvo | Will MacCormack | 2024-12-25T20:28:09.670Z | 78 | true | Not ready |
+| homebridge-nuvo | Will MacCormack | 2024-12-25T20:28:09.670Z | 44 | true | Not ready |
 | homebridge-obis-powermeter | Robert Oschwald | 2025-08-31T07:46:08.977Z | 7 | true | Not ready |
-| homebridge-ondilo-ico | Mash Media | 2025-08-12T14:46:32.923Z | 49 | true | Not ready |
-| homebridge-rointe-unofficial | Jonathan Newton | 2025-09-02T14:42:30.531Z | 28 | true | Not ready |
-| homebridge-switcher-platform | nitaybz | 2025-01-02T13:57:41.133Z | 999 | true | Not ready |
-| homebridge-tadiran-ac | nitaybz | 2025-03-28T13:07:20.866Z | 162 | true | Not ready |
-| homebridge-tempo | Christophe Bansart | 2025-01-22T17:22:56.235Z | 66 | true | Not ready |
-| homebridge-unifi-protect-camera-motion | beele | 2024-12-19T10:01:11.135Z | 1010 | true | Not ready |
-| homebridge-xfinityhome | bloomkd46 | 2025-03-11T16:54:11.183Z | 1679 | true | Not ready |
-| homebridge-zidoo-androidtv | Carlos Gamez | 2025-03-22T06:00:57.763Z | 163 | true | Not ready |
+| homebridge-ondilo-ico | Mash Media | 2025-08-12T14:46:32.923Z | 22 | true | Not ready |
+| homebridge-rointe-unofficial | Jonathan Newton | 2025-09-02T14:42:30.531Z | 11 | true | Not ready |
+| homebridge-switcher-platform | nitaybz | 2025-01-02T13:57:41.133Z | 743 | true | Not ready |
+| homebridge-tadiran-ac | nitaybz | 2025-03-28T13:07:20.866Z | 132 | true | Not ready |
+| homebridge-tempo | Christophe Bansart | 2025-01-22T17:22:56.235Z | 53 | true | Not ready |
+| homebridge-unifi-protect-camera-motion | beele | 2024-12-19T10:01:11.135Z | 909 | true | Not ready |
+| homebridge-xfinityhome | bloomkd46 | 2025-03-11T16:54:11.183Z | 96 | true | Not ready |
+| homebridge-zidoo-androidtv | Carlos Gamez | 2025-03-22T06:00:57.763Z | 149 | true | Not ready |
