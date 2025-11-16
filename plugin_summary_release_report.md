@@ -1,13 +1,13 @@
-# Plugin Summary Report (Based on Latest Release) - Sat Nov 15 2025
+# Plugin Summary Report (Based on Latest Release) - Sun Nov 16 2025
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Fri Nov 15 2024 - Sat Nov 15 2025
+- Latest Release within 12 months: Sat Nov 16 2024 - Sun Nov 16 2025
 - Homebridge 2 Ready: Supported
 
-**Total Plugins Homebridge 2 Ready:** 34<br>
+**Total Plugins Homebridge 2 Ready:** 28<br>
 **Total Plugins Not Homebridge 2 Ready:** 1
 
 | Name | Owner | Latest Release | Downloads | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| homebridge-kiwigrid | Andreas Wäscher | 2025-01-30T13:33:07.037Z | 19 | true | Not ready |
+| homebridge-obis-powermeter | Robert Oschwald | 2025-08-31T07:46:08.977Z | 9 | true | Not ready |
