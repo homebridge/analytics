@@ -1,4 +1,4 @@
-# Plugin Summary Report (Based on Downloads) - Mon Dec 22 2025
+# Plugin Summary Report (Based on Downloads) - Tue Dec 23 2025
 
 **Filters Applied:**
 - Verified: true
@@ -10,4 +10,4 @@
 
 | Name | Owner | Latest Release | Downloads | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| homebridge-camera-ffmpeg | northernman, bwp91, donavanbecker, sunookitsune | 2021-12-28T22:50:56.261Z | 9252 | true | Not ready |
+| homebridge-camera-ffmpeg | northernman, bwp91, donavanbecker, sunookitsune | 2021-12-28T22:50:56.261Z | 505 | true | Not ready |
