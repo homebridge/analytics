@@ -145,7 +145,7 @@ async function getNpmLastWeekDownloads(pluginNames) {
           Object.values(data).forEach(item => packageDLCountMap[item.package] = item.downloads);
         }
       } else {
-        console.log(`Error fetching data for npm last-week download: ${response.status} ${response.statusText}`);
+        console.log(`Error fetching data for npm last-week download: ${res.status} ${res.statusText}`);
         q.split(',').forEach(item => packageDLCountMap[item] = 0);
       }
     } catch (err) {
