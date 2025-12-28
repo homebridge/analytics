@@ -104,6 +104,58 @@ async function getReleaseDownloads() {
     return {};
   }
 }
+async function getNpmLastWeekDownloads(pluginNames) {
+  // https://github.com/npm/registry/blob/main/docs/download-counts.md#bulk-queries
+  const BULK_LIMIT = 128;
+  // This process will batch requests together to reduce the number of requests, but will strive to preserve the order of the search results as much as possible.
+  const queries = [];
+  const bulk = [];
+  const namespaced = [];
+  for (let pluginName of pluginNames) {
+    if (pluginName.startsWith('@')) {
+      namespaced.push(pluginName);
+    } else {
+      bulk.push(pluginName);
+      if (BULK_LIMIT <= bulk.length) {
+        queries.push(bulk.join(','));
+        bulk.length = 0;
+      }
+    }
+    if (bulk.length === 0) {
+      queries.push(...namespaced);
+      namespaced.length = 0;
+    }
+  }
+  if (bulk.length != 0) {
+    queries.push(bulk.join(','));
+    queries.push(...namespaced);
+  }
+
+  // Key: pluginName, Value: Last-Week DL count
+  const packageDLCountMap = {};
+  for (const q of queries) {
+    const url = `https://api.npmjs.org/downloads/point/last-week/${q}`;
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (q.startsWith('@')) {
+          packageDLCountMap[data.package] = data.downloads;
+        } else {
+          Object.values(data).forEach(item => packageDLCountMap[item.package] = item.downloads);
+        }
+      } else {
+        console.log(`Error fetching data for npm last-week download: ${res.status} ${res.statusText}`);
+        q.split(',').forEach(item => packageDLCountMap[item] = 0);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    await sleep(1000); // Sleep for 1 second to avoid rate limiting
+  }
+  console.log(`request count:${queries.length}, package count:${Object.keys(packageDLCountMap).length}`);
+  return packageDLCountMap;
+}
 
 function isHomebridge2Ready(plugin) {
   const hbEngines = plugin.engines?.homebridge?.split('||').map((x) => x.trim()) || [];
@@ -111,21 +163,18 @@ function isHomebridge2Ready(plugin) {
 }
 
 // Fetch the full package metadata and download stats
-async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads) {
+async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads, npmLastWeekDownloads) {
   console.log(`Fetching package details data for ${packageName}...`);
   const url = `https://registry.npmjs.org/${packageName}`;
-  const downloadStatsUrl = `https://api.npmjs.org/downloads/point/last-week/${packageName}`;
 
   try {
-    const [response, downloadStatsResponse] = await Promise.all([
+    const [response] = await Promise.all([
       fetch(url),
-      fetch(downloadStatsUrl),
     ]);
-    if (!response.ok || !downloadStatsResponse.ok) {
+    if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
-    const downloadStats = await downloadStatsResponse.json();
 
     const latestVersion = data['dist-tags'].latest;
     const versionData = data.versions[latestVersion];
@@ -142,7 +191,7 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
     const deprecated = versionData.deprecated || false;
     const displayName = versionData.displayName || packageName;
     const owner = (author === 'Not supplied') ? maintainers.join(', ') : author;
-    const npmDownloads = downloadStats.downloads || 0;
+    const npmDownloads = npmLastWeekDownloads[packageName] || 0;
     const homebridge2ready = isHomebridge2Ready(versionData);
 
     // Check if the plugin is verified
@@ -184,12 +233,13 @@ async function extractAndStoreData() {
   fs.writeFileSync('../allPluginNames.json', JSON.stringify(allPluginNames, null, 2));
   const verifiedPlugins = await getVerifiedPlugins();
   const githubDownloads = await getReleaseDownloads();
+  const npmLastWeekDownloads = await getNpmLastWeekDownloads(allPluginNames);
 
   fs.writeFileSync('../githubDownload.json', JSON.stringify(githubDownloads, null, 2));
   // Limit concurrent requests with pLimit
   const pluginsWithDetails = await Promise.all(
     allPluginNames.map(packageName =>
-      limit(() => fetchPackageDetails(packageName, verifiedPlugins, githubDownloads))
+      limit(() => fetchPackageDetails(packageName, verifiedPlugins, githubDownloads, npmLastWeekDownloads))
     )
   );
 
