@@ -171,14 +171,12 @@ function extractGithubRepo(repository) {
   if (!repoUrl) return null;
   
   // Extract owner/repo from various GitHub URL formats
-  const githubRegex = /github\.com[/:]([\w-]+)\/([\w.-]+)/i;
+  const githubRegex = /github\.com[/:]([\w-]+)\/([\w.-]+?)(?:\.git)?$/i;
   const match = repoUrl.match(githubRegex);
   
   if (match) {
     const owner = match[1];
-    let repo = match[2];
-    // Remove .git suffix if present
-    repo = repo.replace(/\.git$/, '');
+    const repo = match[2];
     return { owner, repo };
   }
   
