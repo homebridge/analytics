@@ -261,7 +261,6 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
     if (githubRepo) {
       githubRepoUrl = `https://github.com/${githubRepo.owner}/${githubRepo.repo}`;
       githubStars = await fetchGithubStars(githubRepo.owner, githubRepo.repo);
-      await sleep(1000); // Sleep for 1 second to avoid rate limiting
     }
     
     await sleep(1000); // Sleep for 1 second to avoid rate limiting

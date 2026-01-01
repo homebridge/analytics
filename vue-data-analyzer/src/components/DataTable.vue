@@ -91,14 +91,14 @@
         </thead>
         <tbody>
           <tr v-for="plugin in sortedPlugins" :key="plugin.name" @click="selectPlugin(plugin)">
-            <td><a :href="'https://www.npmjs.com/package/' + plugin.name" target="_blank">{{ plugin.name }}</a></td>
+            <td><a :href="'https://www.npmjs.com/package/' + plugin.name" target="_blank" rel="noopener noreferrer">{{ plugin.name }}</a></td>
             <td>{{ plugin.description }}</td>
             <td>{{ plugin.version }}</td>
             <td>{{ plugin.owner }}</td>
             <td>{{ plugin.downloads }}</td>
             <td>
               <span v-if="plugin.githubRepo && plugin.githubStars !== null">
-                <a :href="plugin.githubRepo" target="_blank">{{ plugin.githubStars }}</a>
+                <a :href="plugin.githubRepo" target="_blank" rel="noopener noreferrer">{{ plugin.githubStars }}</a>
               </span>
               <span v-else>N/A</span>
             </td>
