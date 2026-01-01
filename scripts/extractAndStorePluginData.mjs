@@ -149,7 +149,8 @@ async function getNpmLastWeekDownloads(pluginNames) {
         q.split(',').forEach(item => packageDLCountMap[item] = 0);
       }
     } catch (err) {
-      console.error(err);
+      console.error(`Error fetching npm last-week download for ${q}: ${err.message}`);
+      q.split(',').forEach(item => packageDLCountMap[item] = 0);
     }
     await sleep(1000); // Sleep for 1 second to avoid rate limiting
   }
@@ -222,7 +223,7 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
       homebridge2ready,
     };
   } catch (error) {
-    console.error(`Error fetching data for ${packageName}:`, error);
+    console.error(`Error fetching data for ${packageName}: ${error.message}`);
     return { name: packageName, error: 'Error fetching package data' };
   }
 }
