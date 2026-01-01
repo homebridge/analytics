@@ -22,6 +22,14 @@
         </select>
         <input v-model.number="filters.downloads" placeholder="Filter by downloads" />
       </label>
+      <label :class="{ 'active-filter': filters.githubStars }">GitHub Stars: 
+        <select v-model="githubStarsComparison">
+          <option value="equal">=</option>
+          <option value="greater">></option>
+          <option value="less">&lt;</option>
+        </select>
+        <input v-model.number="filters.githubStars" placeholder="Filter by GitHub stars" />
+      </label>
       <label :class="{ 'active-filter': filters.created }">Created: 
         <select v-model="createdComparison">
           <option value="after">After</option>
@@ -72,6 +80,7 @@
             <th :class="getHeaderClass('version')" @click="sortTable('version')">Version</th>
             <th :class="getHeaderClass('owner')" @click="sortTable('owner')">Owner</th>
             <th :class="getHeaderClass('downloads')" @click="sortTable('downloads')">Downloads</th>
+            <th :class="getHeaderClass('githubStars')" @click="sortTable('githubStars')">GitHub Stars</th>
             <th :class="getHeaderClass('created')" @click="sortTable('created')">Created</th>
             <th :class="getHeaderClass('lastUpdated')" @click="sortTable('lastUpdated')">Last Updated</th>
             <th :class="getHeaderClass('engines.node')" @click="sortTable('engines.node')">Engine Node</th>
@@ -87,6 +96,12 @@
             <td>{{ plugin.version }}</td>
             <td>{{ plugin.owner }}</td>
             <td>{{ plugin.downloads }}</td>
+            <td>
+              <span v-if="plugin.githubRepo && plugin.githubStars !== null">
+                <a :href="plugin.githubRepo" target="_blank">{{ plugin.githubStars }}</a>
+              </span>
+              <span v-else>N/A</span>
+            </td>
             <td>{{ new Date(plugin.created).toLocaleDateString() }}</td>
             <td>{{ new Date(plugin.lastUpdated).toLocaleDateString() }}</td>
             <td>{{ plugin.engines.node }}</td>
@@ -113,6 +128,7 @@ export default {
         version: "",
         owner: "",
         downloads: "",
+        githubStars: "",
         created: "",
         lastUpdated: "",
         node: "",
@@ -121,6 +137,7 @@ export default {
         verified: ""
       },
       downloadsComparison: 'equal',
+      githubStarsComparison: 'equal',
       createdComparison: 'after',
       lastUpdatedComparison: 'after',
       sortKey: null,
@@ -135,6 +152,12 @@ export default {
           (this.downloadsComparison === 'greater' ? plugin.downloads > this.filters.downloads :
           this.downloadsComparison === 'less' ? plugin.downloads < this.filters.downloads :
           plugin.downloads === this.filters.downloads) : true;
+
+        const githubStarsValid = this.filters.githubStars !== "" && this.filters.githubStars !== undefined;
+        const githubStarsCondition = githubStarsValid ? 
+          (this.githubStarsComparison === 'greater' ? (plugin.githubStars || 0) > this.filters.githubStars :
+          this.githubStarsComparison === 'less' ? (plugin.githubStars || 0) < this.filters.githubStars :
+          (plugin.githubStars || 0) === this.filters.githubStars) : true;
 
         const createdValid = this.filters.created && this.filters.created !== "";
         const createdCondition = createdValid ?
@@ -160,6 +183,7 @@ export default {
           (this.filters.version === "" || (plugin.version && plugin.version.toLowerCase().includes(this.filters.version.toLowerCase()))) &&
           (this.filters.owner === "" || (plugin.owner && plugin.owner.toLowerCase().includes(this.filters.owner.toLowerCase()))) &&
           downloadsCondition &&
+          githubStarsCondition &&
           createdCondition &&
           lastUpdatedCondition &&
           nodeCondition &&
@@ -199,6 +223,7 @@ export default {
         version: "",
         owner: "",
         downloads: "",
+        githubStars: "",
         created: "",
         lastUpdated: "",
         node: "",
@@ -207,6 +232,7 @@ export default {
         verified: ""
       };
       this.downloadsComparison = 'equal';
+      this.githubStarsComparison = 'equal';
       this.createdComparison = 'after';
       this.lastUpdatedComparison = 'after';
       this.sortKey = null;
@@ -216,6 +242,8 @@ export default {
       switch (this.sortKey) {
         case 'downloads':
           return plugin.downloads;
+        case 'githubStars':
+          return plugin.githubStars || 0;
         case 'created':
           return new Date(plugin.created);
         case 'lastUpdated':

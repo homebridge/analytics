@@ -162,6 +162,58 @@ function isHomebridge2Ready(plugin) {
   return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'Supported' : 'Not ready';
 }
 
+// Extract GitHub repository info from npm package data
+function extractGithubRepo(repository) {
+  if (!repository) return null;
+  
+  // Handle both string and object repository formats
+  const repoUrl = typeof repository === 'string' ? repository : repository.url;
+  if (!repoUrl) return null;
+  
+  // Extract owner/repo from various GitHub URL formats
+  const githubRegex = /github\.com[/:]([\w-]+)\/([\w.-]+)/i;
+  const match = repoUrl.match(githubRegex);
+  
+  if (match) {
+    const owner = match[1];
+    let repo = match[2];
+    // Remove .git suffix if present
+    repo = repo.replace(/\.git$/, '');
+    return { owner, repo };
+  }
+  
+  return null;
+}
+
+// Fetch GitHub stars for a repository
+async function fetchGithubStars(owner, repo) {
+  const url = `https://api.github.com/repos/${owner}/${repo}`;
+  
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        // Use GITHUB_TOKEN if available for higher rate limits
+        ...(process.env.GITHUB_TOKEN && { 'Authorization': `token ${process.env.GITHUB_TOKEN}` })
+      }
+    });
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log(`Repository not found: ${owner}/${repo}`);
+        return null;
+      }
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.stargazers_count;
+  } catch (error) {
+    console.error(`Error fetching GitHub stars for ${owner}/${repo}:`, error);
+    return null;
+  }
+}
+
 // Fetch the full package metadata and download stats
 async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads, npmLastWeekDownloads) {
   console.log(`Fetching package details data for ${packageName}...`);
@@ -200,6 +252,18 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
     // Add GitHub downloads (if present) to npm downloads
     const githubDownloadCount = githubDownloads[packageName + '-' + version] || 0;
     const totalDownloads = npmDownloads + githubDownloadCount;
+    
+    // Extract GitHub repository info and fetch stars
+    const githubRepo = extractGithubRepo(versionData.repository || data.repository);
+    let githubStars = null;
+    let githubRepoUrl = null;
+    
+    if (githubRepo) {
+      githubRepoUrl = `https://github.com/${githubRepo.owner}/${githubRepo.repo}`;
+      githubStars = await fetchGithubStars(githubRepo.owner, githubRepo.repo);
+      await sleep(1000); // Sleep for 1 second to avoid rate limiting
+    }
+    
     await sleep(1000); // Sleep for 1 second to avoid rate limiting
     return {
       name: packageName,
@@ -220,6 +284,8 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
       npmDownloads,
       githubDownloads: githubDownloadCount, // Track GitHub downloads separately
       homebridge2ready,
+      githubStars,  // Add GitHub stars count
+      githubRepo: githubRepoUrl,  // Add GitHub repository URL
     };
   } catch (error) {
     console.error(`Error fetching data for ${packageName}:`, error);
