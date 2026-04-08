@@ -384,49 +384,6 @@
   .footer-text a { color: var(--muted); text-decoration: none; }
   .footer-text a:hover { color: var(--accent); }
 
-  .token-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 1.5rem;
-    padding: 10px 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    flex-wrap: wrap;
-  }
-
-  .token-label {
-    font-size: 11px;
-    font-family: var(--mono);
-    color: var(--muted);
-    white-space: nowrap;
-  }
-
-  .token-input {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 5px 10px;
-    border-radius: 5px;
-    flex: 1;
-    min-width: 200px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .token-input:focus { border-color: var(--accent-border); }
-  .token-input::placeholder { color: var(--faint); }
-
-  .token-hint {
-    font-size: 10px;
-    color: var(--muted);
-    font-family: var(--mono);
-    white-space: nowrap;
-  }
-
   @media (max-width: 600px) {
     .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     header { flex-direction: column; }
@@ -460,12 +417,6 @@
       </button>
     </div>
   </header>
-
-  <div class="token-row">
-    <span class="token-label">GitHub token (optional):</span>
-    <input class="token-input" type="password" id="gh-token" placeholder="ghp_xxxx — increases rate limit from 60 to 5000 req/hr" />
-    <span class="token-hint">stored in memory only</span>
-  </div>
 
   <div class="summary" id="summary">
     <div class="metric"><div class="metric-label">Repos tracked</div><div class="metric-value skeleton" style="height:22px;width:30px"> </div></div>
@@ -545,10 +496,7 @@ function categorizeReleases(releases) {
 }
 
 function getHeaders() {
-  const token = document.getElementById('gh-token').value.trim();
-  const h = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
-  if (token) h['Authorization'] = `Bearer ${token}`;
-  return h;
+  return { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
 }
 
 async function fetchReleases(owner, repo) {
