@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homebridge Repository Statistics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2026;
+    --border: #2a2d35;
+    --border2: #363a44;
+    --text: #e8eaf0;
+    --muted: #6b7080;
+    --accent: #7ee8a2;
+    --accent-dim: rgba(126,232,162,0.12);
+    --accent-border: rgba(126,232,162,0.3);
+    --issue: #f5c542;
+    --issue-dim: rgba(245,197,66,0.12);
+    --pr: #5b9bf5;
+    --pr-dim: rgba(91,155,245,0.12);
+    --dependabot: #f57bb5;
+    --dependabot-dim: rgba(245,123,181,0.12);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 12px; }
+
+  .logo {
+    width: 36px;
+    height: 36px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo svg { width: 18px; height: 18px; stroke: var(--accent); }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  #last-updated {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .refresh-btn:hover { border-color: var(--accent-border); background: var(--accent-dim); color: var(--accent); }
+  .refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .refresh-icon {
+    width: 12px;
+    height: 12px;
+    transition: transform 0.6s;
+  }
+  .refresh-btn.spinning .refresh-icon { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .repo-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    background: var(--surface2);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .repo-name {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .repo-name:hover {
+    color: var(--accent);
+  }
+
+  .stat-cell {
+    font-family: var(--mono);
+    text-align: center;
+  }
+
+  .stat-issues { color: var(--issue); }
+  .stat-prs { color: var(--pr); }
+  .stat-dependabot { color: var(--dependabot); }
+  .stat-copilot { color: #6e40c9; }
+
+  .skeleton {
+    background: var(--surface2);
+    border-radius: 4px;
+    animation: shimmer 1.4s ease-in-out infinite;
+    display: inline-block;
+    min-width: 30px;
+    height: 16px;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    header { flex-direction: column; }
+    .header-right { width: 100%; justify-content: space-between; }
+    
+    table { font-size: 12px; }
+    th, td { padding: 8px 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-left">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <path d="M9 22V12h6v10"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Homebridge repository statistics</h1>
+        <div class="subtitle">github.com/homebridge · organization activity</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="last-updated"></span>
+      <button class="refresh-btn" id="refresh-btn" onclick="loadStats()">
+        <svg class="refresh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13.5 8A5.5 5.5 0 112.9 5M2.5 2v3h3"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <div class="summary" id="summary">
+    <div class="metric"><div class="metric-label">Total Repositories</div><div class="metric-value skeleton"></div></div>
+    <div class="metric"><div class="metric-label">Total Issues</div><div class="metric-value skeleton"></div></div>
+    <div class="metric"><div class="metric-label">Total PRs</div><div class="metric-value skeleton"></div></div>
+    <div class="metric"><div class="metric-label">Dependabot PRs</div><div class="metric-value skeleton"></div></div>
+    <div class="metric"><div class="metric-label">Copilot PRs</div><div class="metric-value skeleton"></div></div>
+  </div>
+
+  <div class="repo-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Repository</th>
+          <th style="text-align:center">Issues</th>
+          <th style="text-align:center">PRs</th>
+          <th style="text-align:center">Dependabot</th>
+          <th style="text-align:center">Copilot</th>
+        </tr>
+      </thead>
+      <tbody id="repo-tbody">
+        <tr>
+          <td><span class="skeleton" style="width:200px"></span></td>
+          <td class="stat-cell"><span class="skeleton"></span></td>
+          <td class="stat-cell"><span class="skeleton"></span></td>
+          <td class="stat-cell"><span class="skeleton"></span></td>
+          <td class="stat-cell"><span class="skeleton"></span></td>
+        </tr>
+        <tr>
+          <td><span class="skeleton" style="width:180px"></span></td>
+          <td class="stat-cell"><span class="skeleton"></span></td>
+          <td class="stat-cell"><span class="skeleton"></span></td>
+          <td class="stat-cell"><span class="skeleton"></span></td>
+          <td class="stat-cell"><span class="skeleton"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>Data from <a href="https://api.github.com" target="_blank" style="color:var(--muted);text-decoration:none">api.github.com</a></span>
+  </footer>
+
+</div>
+
+<script>
+const ORG_NAME = 'homebridge';
+
+async function fetchOrgRepos() {
+  const repos = [];
+  let page = 1;
+  
+  while (true) {
+    const res = await fetch(
+      `https://api.github.com/orgs/${ORG_NAME}/repos?per_page=100&page=${page}`,
+      { headers: { 'Accept': 'application/vnd.github+json' } }
+    );
+    
+    if (!res.ok) {
+      throw new Error(`Failed to fetch repositories: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    if (data.length === 0) break;
+    
+    repos.push(...data);
+    page++;
+  }
+  
+  return repos;
+}
+
+async function fetchRepoStats(owner, repo) {
+  // Fetch issues (includes PRs)
+  const issuesRes = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=100`,
+    { headers: { 'Accept': 'application/vnd.github+json' } }
+  );
+  
+  if (!issuesRes.ok) {
+    throw new Error(`Failed to fetch issues for ${repo}: ${issuesRes.status}`);
+  }
+  
+  const issues = await issuesRes.json();
+  
+  // Separate issues and PRs
+  let issueCount = 0;
+  let prCount = 0;
+  let dependabotCount = 0;
+  let copilotCount = 0;
+  
+  issues.forEach(issue => {
+    if (issue.pull_request) {
+      prCount++;
+      // Check if PR is from Dependabot
+      if (issue.user && issue.user.login === 'dependabot[bot]') {
+        dependabotCount++;
+      }
+      // Check if PR is from Copilot (multiple possible bot accounts)
+      if (issue.user && (
+        issue.user.login === 'copilot-autofix[bot]' || 
+        issue.user.login === 'github-advanced-security[bot]' ||
+        issue.user.login === 'copilot[bot]' ||
+        issue.user.login.includes('copilot')
+      )) {
+        copilotCount++;
+      }
+    } else {
+      issueCount++;
+    }
+  });
+  
+  return { issueCount, prCount, dependabotCount, copilotCount };
+}
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadStats() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.classList.add('spinning');
+
+  try {
+    // Fetch all repositories
+    const repos = await fetchOrgRepos();
+    
+    // Fetch stats for each repository
+    const results = await Promise.allSettled(
+      repos.map(repo => fetchRepoStats(ORG_NAME, repo.name).then(stats => ({ repo, stats })))
+    );
+    
+    let totalIssues = 0;
+    let totalPRs = 0;
+    let totalDependabot = 0;
+    let totalCopilot = 0;
+    const repoStats = [];
+    
+    results.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        const { repo, stats } = result.value;
+        repoStats.push({
+          name: repo.name,
+          url: repo.html_url,
+          ...stats
+        });
+        totalIssues += stats.issueCount;
+        totalPRs += stats.prCount;
+        totalDependabot += stats.dependabotCount;
+        totalCopilot += stats.copilotCount;
+      }
+    });
+    
+    // Sort by total activity (issues + PRs)
+    repoStats.sort((a, b) => {
+      const aTotal = a.issueCount + a.prCount;
+      const bTotal = b.issueCount + b.prCount;
+      return bTotal - aTotal;
+    });
+    
+    // Update summary
+    document.getElementById('summary').innerHTML = `
+      <div class="metric">
+        <div class="metric-label">Total Repositories</div>
+        <div class="metric-value">${repos.length}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total Issues</div>
+        <div class="metric-value stat-issues">${totalIssues}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total PRs</div>
+        <div class="metric-value stat-prs">${totalPRs}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Dependabot PRs</div>
+        <div class="metric-value stat-dependabot">${totalDependabot}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Copilot PRs</div>
+        <div class="metric-value stat-copilot">${totalCopilot}</div>
+      </div>`;
+    
+    // Update table
+    const tbody = document.getElementById('repo-tbody');
+    tbody.innerHTML = repoStats.map(stat => `
+      <tr>
+        <td><a class="repo-name" href="${escHtml(stat.url)}" target="_blank">${escHtml(stat.name)}</a></td>
+        <td class="stat-cell stat-issues">${stat.issueCount}</td>
+        <td class="stat-cell stat-prs">${stat.prCount}</td>
+        <td class="stat-cell stat-dependabot">${stat.dependabotCount}</td>
+        <td class="stat-cell stat-copilot">${stat.copilotCount}</td>
+      </tr>
+    `).join('');
+    
+    // Update timestamp
+    const now = new Date();
+    document.getElementById('last-updated').textContent =
+      `Updated ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+    
+  } catch (error) {
+    console.error('Error loading stats:', error);
+    document.getElementById('summary').innerHTML = `
+      <div class="metric" style="grid-column: 1 / -1;">
+        <div class="metric-label">Error</div>
+        <div class="metric-value" style="font-size:14px;color:var(--issue)">Failed to load statistics: ${escHtml(error.message)}</div>
+      </div>`;
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('spinning');
+  }
+}
+
+loadStats();
+</script>
+</body>
+</html>
