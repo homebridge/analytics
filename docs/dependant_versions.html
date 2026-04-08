@@ -445,7 +445,7 @@
 
 <script>
 const REPOS = [
-  { owner: 'homebridge', repo: 'homebridge',               label: 'Core server' },
+  { owner: 'homebridge', repo: 'homebridge',               label: 'Core server', useNpm: true },
   { owner: 'homebridge', repo: 'homebridge-config-ui-x',   label: 'Config UI' },
   { owner: 'homebridge', repo: 'docker-homebridge',        label: 'Docker image' },
   { owner: 'homebridge', repo: 'homebridge-vm-image',      label: 'VM image' },
@@ -509,6 +509,52 @@ async function fetchReleases(owner, repo) {
     throw new Error(err.message || `HTTP ${res.status}`);
   }
   return res.json();
+}
+
+async function fetchNpmVersions(packageName) {
+  const res = await fetch(`https://registry.npmjs.org/${packageName}`);
+  if (!res.ok) {
+    throw new Error(`NPM registry returned ${res.status}`);
+  }
+  const data = await res.json();
+  
+  // Get dist-tags for latest, beta, alpha
+  const tags = data['dist-tags'] || {};
+  const times = data.time || {};
+  
+  const releases = [];
+  
+  // Add latest (stable) version
+  if (tags.latest) {
+    releases.push({
+      tag_name: `v${tags.latest}`,
+      name: `latest (v${tags.latest})`,
+      published_at: times[tags.latest] || new Date().toISOString(),
+      html_url: `https://www.npmjs.com/package/${packageName}/v/${tags.latest}`
+    });
+  }
+  
+  // Add beta version
+  if (tags.beta) {
+    releases.push({
+      tag_name: `v${tags.beta}`,
+      name: `beta (v${tags.beta})`,
+      published_at: times[tags.beta] || new Date().toISOString(),
+      html_url: `https://www.npmjs.com/package/${packageName}/v/${tags.beta}`
+    });
+  }
+  
+  // Add alpha version
+  if (tags.alpha) {
+    releases.push({
+      tag_name: `v${tags.alpha}`,
+      name: `alpha (v${tags.alpha})`,
+      published_at: times[tags.alpha] || new Date().toISOString(),
+      html_url: `https://www.npmjs.com/package/${packageName}/v/${tags.alpha}`
+    });
+  }
+  
+  return releases;
 }
 
 function renderReleaseSection(releases, type, limit = 3) {
@@ -602,7 +648,7 @@ async function loadAll() {
   btn.classList.add('spinning');
 
   const results = await Promise.allSettled(REPOS.map(r => 
-    fetchReleases(r.owner, r.repo)
+    r.useNpm ? fetchNpmVersions(r.repo) : fetchReleases(r.owner, r.repo)
   ));
 
   let recentCount = 0;
