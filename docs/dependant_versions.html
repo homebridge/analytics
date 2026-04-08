@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homebridge Release Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2026;
+    --border: #2a2d35;
+    --border2: #363a44;
+    --text: #e8eaf0;
+    --muted: #6b7080;
+    --faint: #3a3d47;
+    --accent: #7ee8a2;
+    --accent-dim: rgba(126,232,162,0.12);
+    --accent-border: rgba(126,232,162,0.3);
+    --beta: #5b9bf5;
+    --beta-dim: rgba(91,155,245,0.12);
+    --beta-border: rgba(91,155,245,0.3);
+    --alpha: #f57bb5;
+    --alpha-dim: rgba(245,123,181,0.12);
+    --alpha-border: rgba(245,123,181,0.3);
+    --warn: #f5c542;
+    --warn-dim: rgba(245,197,66,0.1);
+    --stale: #6b7080;
+    --stale-dim: rgba(107,112,128,0.1);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 12px; }
+
+  .logo {
+    width: 36px;
+    height: 36px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo svg { width: 18px; height: 18px; stroke: var(--accent); }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  #last-updated {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .refresh-btn:hover { border-color: var(--accent-border); background: var(--accent-dim); color: var(--accent); }
+  .refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .refresh-icon {
+    width: 12px;
+    height: 12px;
+    transition: transform 0.6s;
+  }
+  .refresh-btn.spinning .refresh-icon { animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .metric-value.mono {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+
+  .repo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .repo-card:hover { border-color: var(--border2); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+
+  .card-meta { display: flex; flex-direction: column; gap: 3px; }
+
+  .repo-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .repo-name:hover { color: var(--accent); }
+
+  .repo-label {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .card-badges { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+
+  .badge {
+    font-size: 10px;
+    font-family: var(--mono);
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .badge-recent { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+  .badge-older  { background: var(--warn-dim);   color: var(--warn);   border: 1px solid rgba(245,197,66,0.25); }
+  .badge-stale  { background: var(--stale-dim);  color: var(--stale);  border: 1px solid rgba(107,112,128,0.2); }
+
+  .release-sections { padding: 0; }
+
+  .release-section {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .release-section:last-child {
+    border-bottom: none;
+  }
+
+  .section-header {
+    padding: 10px 1.25rem;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .section-title.stable { color: var(--accent); }
+  .section-title.beta { color: var(--beta); }
+  .section-title.alpha { color: var(--alpha); }
+
+  .section-badge {
+    font-size: 9px;
+    font-family: var(--mono);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .section-badge.stable { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+  .section-badge.beta { background: var(--beta-dim); color: var(--beta); border: 1px solid var(--beta-border); }
+  .section-badge.alpha { background: var(--alpha-dim); color: var(--alpha); border: 1px solid var(--alpha-border); }
+
+  .releases { padding: 0 1.25rem; }
+
+  .release-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .release-row:last-child { border-bottom: none; }
+
+  .release-tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    min-width: 120px;
+    flex-shrink: 0;
+  }
+
+  .release-tag.stable { color: var(--accent); }
+  .release-tag.beta { color: var(--beta); }
+  .release-tag.alpha { color: var(--alpha); }
+
+  .release-name {
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .release-name.is-latest { color: var(--text); }
+
+  .latest-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  .latest-dot.stable { background: var(--accent); color: var(--accent); }
+  .latest-dot.beta { background: var(--beta); color: var(--beta); }
+  .latest-dot.alpha { background: var(--alpha); color: var(--alpha); }
+
+  .release-date {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .release-link {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+
+  .release-link:hover { color: var(--accent); }
+
+  .card-error {
+    padding: 1rem 1.25rem;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+
+  .skeleton {
+    background: var(--surface2);
+    border-radius: 4px;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-text {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+
+  .footer-text a { color: var(--muted); text-decoration: none; }
+  .footer-text a:hover { color: var(--accent); }
+
+  .token-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    flex-wrap: wrap;
+  }
+
+  .token-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .token-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    flex: 1;
+    min-width: 200px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .token-input:focus { border-color: var(--accent-border); }
+  .token-input::placeholder { color: var(--faint); }
+
+  .token-hint {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 600px) {
+    .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    header { flex-direction: column; }
+    .header-right { width: 100%; justify-content: space-between; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-left">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <path d="M9 22V12h6v10"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Homebridge release monitor</h1>
+        <div class="subtitle">github.com/homebridge · live release tracker</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="last-updated"></span>
+      <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">
+        <svg class="refresh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13.5 8A5.5 5.5 0 112.9 5M2.5 2v3h3"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <div class="token-row">
+    <span class="token-label">GitHub token (optional):</span>
+    <input class="token-input" type="password" id="gh-token" placeholder="ghp_xxxx — increases rate limit from 60 to 5000 req/hr" />
+    <span class="token-hint">stored in memory only</span>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="metric"><div class="metric-label">Repos tracked</div><div class="metric-value skeleton" style="height:22px;width:30px"> </div></div>
+    <div class="metric"><div class="metric-label">Recently updated</div><div class="metric-value skeleton" style="height:22px;width:40px"> </div></div>
+  </div>
+
+  <div id="cards">
+    <div class="repo-card" style="padding:1.25rem">
+      <div class="skeleton" style="height:14px;width:55%;margin-bottom:10px"> </div>
+      <div class="skeleton" style="height:12px;width:30%;margin-bottom:16px"> </div>
+      <div class="skeleton" style="height:12px;width:80%"> </div>
+    </div>
+    <div class="repo-card" style="padding:1.25rem">
+      <div class="skeleton" style="height:14px;width:50%;margin-bottom:10px"> </div>
+      <div class="skeleton" style="height:12px;width:35%;margin-bottom:16px"> </div>
+      <div class="skeleton" style="height:12px;width:70%"> </div>
+    </div>
+  </div>
+
+  <footer>
+    <span class="footer-text">Data from <a href="https://api.github.com" target="_blank">api.github.com</a></span>
+    <span class="footer-text">Unauthenticated: 60 req/hr &nbsp;·&nbsp; With token: 5000 req/hr</span>
+  </footer>
+
+</div>
+
+<script>
+const REPOS = [
+  { owner: 'homebridge', repo: 'homebridge',               label: 'Core server' },
+  { owner: 'homebridge', repo: 'homebridge-config-ui-x',   label: 'Config UI' },
+  { owner: 'homebridge', repo: 'docker-homebridge',        label: 'Docker image' },
+  { owner: 'homebridge', repo: 'homebridge-vm-image',      label: 'VM image' },
+  { owner: 'homebridge', repo: 'homebridge-apt-pkg',       label: 'APT package' },
+  { owner: 'homebridge', repo: 'homebridge-raspbian-image',label: 'Raspbian image' },
+];
+
+function relTime(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return m <= 1 ? 'just now' : `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo}mo ago`;
+  return `${Math.floor(mo / 12)}y ago`;
+}
+
+function staleBadge(dateStr) {
+  const days = (Date.now() - new Date(dateStr).getTime()) / 86400000;
+  if (days < 30)  return ['badge-recent', 'Recent'];
+  if (days < 180) return ['badge-older', 'Older'];
+  return ['badge-stale', 'Stale'];
+}
+
+function getReleaseType(tagName) {
+  const lower = tagName.toLowerCase();
+  if (lower.includes('alpha')) return 'alpha';
+  if (lower.includes('beta')) return 'beta';
+  return 'stable';
+}
+
+function categorizeReleases(releases) {
+  const stable = [];
+  const beta = [];
+  const alpha = [];
+  
+  releases.forEach(release => {
+    const type = getReleaseType(release.tag_name);
+    if (type === 'alpha') alpha.push(release);
+    else if (type === 'beta') beta.push(release);
+    else stable.push(release);
+  });
+  
+  return { stable, beta, alpha };
+}
+
+function getHeaders() {
+  const token = document.getElementById('gh-token').value.trim();
+  const h = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+  if (token) h['Authorization'] = `Bearer ${token}`;
+  return h;
+}
+
+async function fetchReleases(owner, repo) {
+  const res = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/releases?per_page=30`,
+    { headers: getHeaders() }
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+function renderReleaseSection(releases, type, limit = 3) {
+  if (releases.length === 0) return '';
+  
+  const rows = releases.slice(0, limit).map((r, i) => `
+    <div class="release-row">
+      ${i === 0 ? `<div class="latest-dot ${type}"></div>` : '<div style="width:5px;flex-shrink:0"></div>'}
+      <span class="release-tag ${type}">${escHtml(r.tag_name)}</span>
+      <span class="release-name${i === 0 ? ' is-latest' : ''}">${escHtml(r.name || r.tag_name)}</span>
+      <span class="release-date">${relTime(r.published_at)}</span>
+      <a class="release-link" href="${escHtml(r.html_url)}" target="_blank" rel="noopener">↗ notes</a>
+    </div>`).join('');
+
+  const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+  const count = releases.length > limit ? ` (${limit}/${releases.length})` : '';
+
+  return `
+    <div class="release-section">
+      <div class="section-header">
+        <span class="section-title ${type}">${typeLabel}</span>
+        <span class="section-badge ${type}">${releases[0].tag_name}</span>
+        ${count ? `<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">${count}</span>` : ''}
+      </div>
+      <div class="releases">${rows}</div>
+    </div>`;
+}
+
+function renderCard(owner, repo, label, releases) {
+  if (!releases || releases.length === 0) {
+    return `
+      <div class="repo-card">
+        <div class="card-header">
+          <div class="card-meta">
+            <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${owner}/${repo}</a>
+            <span class="repo-label">${label}</span>
+          </div>
+          <div class="card-badges"><span class="badge badge-stale">No releases</span></div>
+        </div>
+        <div class="card-error">No releases published yet.</div>
+      </div>`;
+  }
+
+  const { stable, beta, alpha } = categorizeReleases(releases);
+  const latest = stable[0] || beta[0] || alpha[0];
+  const [badgeClass, badgeText] = staleBadge(latest.published_at);
+
+  const badges = [];
+  badges.push(`<span class="badge ${badgeClass}">${badgeText}</span>`);
+
+  const sections = [
+    renderReleaseSection(stable, 'stable', 3),
+    renderReleaseSection(beta, 'beta', 3),
+    renderReleaseSection(alpha, 'alpha', 3)
+  ].filter(s => s).join('');
+
+  return `
+    <div class="repo-card">
+      <div class="card-header">
+        <div class="card-meta">
+          <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${owner}/${repo}</a>
+          <span class="repo-label">${label}</span>
+        </div>
+        <div class="card-badges">${badges.join('')}</div>
+      </div>
+      <div class="release-sections">${sections}</div>
+    </div>`;
+}
+
+function renderError(owner, repo, label, message) {
+  return `
+    <div class="repo-card">
+      <div class="card-header">
+        <div class="card-meta">
+          <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${owner}/${repo}</a>
+          <span class="repo-label">${label}</span>
+        </div>
+        <div class="card-badges"><span class="badge badge-stale">Error</span></div>
+      </div>
+      <div class="card-error">Failed to load: ${escHtml(message)}</div>
+    </div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.classList.add('spinning');
+
+  const results = await Promise.allSettled(REPOS.map(r => 
+    fetchReleases(r.owner, r.repo)
+  ));
+
+  let recentCount = 0;
+  let cardsHtml = '';
+
+  results.forEach((res, i) => {
+    const { owner, repo, label } = REPOS[i];
+    if (res.status === 'fulfilled') {
+      const releases = res.value;
+      if (releases.length > 0) {
+        const { stable } = categorizeReleases(releases);
+        const latest = stable[0] || releases[0];
+        const days = (Date.now() - new Date(latest.published_at).getTime()) / 86400000;
+        if (days < 30) recentCount++;
+      }
+      cardsHtml += renderCard(owner, repo, label, releases);
+    } else {
+      cardsHtml += renderError(owner, repo, label, res.reason?.message || 'Unknown error');
+    }
+  });
+
+  document.getElementById('cards').innerHTML = cardsHtml;
+
+  document.getElementById('summary').innerHTML = `
+    <div class="metric">
+      <div class="metric-label">Repos tracked</div>
+      <div class="metric-value">${REPOS.length}</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Recently updated</div>
+      <div class="metric-value">${recentCount} <span style="font-size:14px;color:var(--muted)">/ ${REPOS.length}</span></div>
+    </div>`;
+
+  const now = new Date();
+  document.getElementById('last-updated').textContent =
+    `Updated ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+
+  btn.disabled = false;
+  btn.classList.remove('spinning');
+}
+
+loadAll();
+</script>
+</body>
+</html>
