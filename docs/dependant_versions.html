@@ -384,6 +384,54 @@
   .footer-text a { color: var(--muted); text-decoration: none; }
   .footer-text a:hover { color: var(--accent); }
 
+  .group-header {
+    font-size: 12px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 2rem 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: color 0.15s;
+  }
+
+  .group-header:hover {
+    color: var(--text);
+  }
+
+  .group-header:first-child {
+    margin-top: 0;
+  }
+
+  .group-toggle {
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+
+  .group-toggle.collapsed {
+    transform: rotate(-90deg);
+  }
+
+  .group-content {
+    max-height: 10000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+    opacity: 1;
+  }
+
+  .group-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+  }
+
   @media (max-width: 600px) {
     .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     header { flex-direction: column; }
@@ -444,14 +492,37 @@
 </div>
 
 <script>
-const REPOS = [
-  { owner: 'homebridge', repo: 'homebridge',               label: 'Core server', useNpm: true },
-  { owner: 'homebridge', repo: 'homebridge-config-ui-x',   label: 'Config UI' },
-  { owner: 'homebridge', repo: 'homebridge-apt-pkg',       label: 'APT package' },
-  { owner: 'homebridge', repo: 'docker-homebridge',        label: 'Docker image' },
-  { owner: 'homebridge', repo: 'homebridge-vm-image',      label: 'VM image' },
-  { owner: 'homebridge', repo: 'homebridge-raspbian-image',label: 'Raspbian image' },
+const REPO_GROUPS = [
+  {
+    name: 'Core Components',
+    repos: [
+      { owner: 'homebridge', repo: 'homebridge',               label: 'Core server', useNpm: true },
+      { owner: 'homebridge', repo: 'homebridge-config-ui-x',   label: 'Config UI' },
+    ]
+  },
+  {
+    name: 'Pre-Packaged Versions',
+    repos: [
+      { owner: 'homebridge', repo: 'homebridge-apt-pkg',       label: 'APT package' },
+      { owner: 'homebridge', repo: 'docker-homebridge',        label: 'Docker image' },
+      { owner: 'homebridge', repo: 'homebridge-vm-image',      label: 'VM image' },
+      { owner: 'homebridge', repo: 'homebridge-raspbian-image',label: 'Raspbian image' },
+    ]
+  },
+  {
+    name: 'Dependencies',
+    repos: [
+      { owner: 'homebridge', repo: 'HAP-NodeJS',               label: 'HAP-NodeJS 0.x', useNpm: true, npmPackage: 'hap-nodejs' },
+      { owner: 'homebridge', repo: 'HAP-NodeJS',               label: 'HAP-NodeJS 2.x', useNpm: true, npmPackage: '@homebridge/hap-nodejs' },
+      { owner: 'homebridge', repo: 'ciao',                     label: 'ciao mDNS' },
+      { owner: 'homebridge', repo: 'bonjour',                  label: 'Bonjour', useNpm: true, npmPackage: 'bonjour-hap' },
+      { owner: 'homebridge', repo: 'hap-client',               label: 'HAP client'},
+    ]
+  }
 ];
+
+// Flatten repos for compatibility with existing code
+const REPOS = REPO_GROUPS.flatMap(g => g.repos);
 
 function relTime(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -642,32 +713,61 @@ function escHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function toggleGroup(groupName) {
+  const content = document.getElementById(`group-content-${groupName}`);
+  const toggle = document.getElementById(`group-toggle-${groupName}`);
+  
+  if (content && toggle) {
+    content.classList.toggle('collapsed');
+    toggle.classList.toggle('collapsed');
+  }
+}
+
 async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.disabled = true;
   btn.classList.add('spinning');
 
   const results = await Promise.allSettled(REPOS.map(r => 
-    r.useNpm ? fetchNpmVersions(r.repo) : fetchReleases(r.owner, r.repo)
+    r.useNpm ? fetchNpmVersions(r.npmPackage || r.repo) : fetchReleases(r.owner, r.repo)
   ));
 
   let recentCount = 0;
   let cardsHtml = '';
+  let repoIndex = 0;
 
-  results.forEach((res, i) => {
-    const { owner, repo, label } = REPOS[i];
-    if (res.status === 'fulfilled') {
-      const releases = res.value;
-      if (releases.length > 0) {
-        const { stable } = categorizeReleases(releases);
-        const latest = stable[0] || releases[0];
-        const days = (Date.now() - new Date(latest.published_at).getTime()) / 86400000;
-        if (days < 30) recentCount++;
+  REPO_GROUPS.forEach((group, groupIndex) => {
+    const groupId = group.name.toLowerCase().replace(/\s+/g, '-');
+    const isCollapsed = groupIndex > 0 ? ' collapsed' : '';
+    
+    cardsHtml += `
+      <div class="group-header" onclick="toggleGroup('${groupId}')">
+        <span>${escHtml(group.name)}</span>
+        <span id="group-toggle-${groupId}" class="group-toggle${isCollapsed}">▼</span>
+      </div>
+      <div id="group-content-${groupId}" class="group-content${isCollapsed}">`;
+    
+    group.repos.forEach((repoConfig) => {
+      const res = results[repoIndex];
+      const { owner, repo, label } = repoConfig;
+      
+      if (res.status === 'fulfilled') {
+        const releases = res.value;
+        if (releases.length > 0) {
+          const { stable } = categorizeReleases(releases);
+          const latest = stable[0] || releases[0];
+          const days = (Date.now() - new Date(latest.published_at).getTime()) / 86400000;
+          if (days < 30) recentCount++;
+        }
+        cardsHtml += renderCard(owner, repo, label, releases);
+      } else {
+        cardsHtml += renderError(owner, repo, label, res.reason?.message || 'Unknown error');
       }
-      cardsHtml += renderCard(owner, repo, label, releases);
-    } else {
-      cardsHtml += renderError(owner, repo, label, res.reason?.message || 'Unknown error');
-    }
+      
+      repoIndex++;
+    });
+    
+    cardsHtml += '</div>';
   });
 
   document.getElementById('cards').innerHTML = cardsHtml;
