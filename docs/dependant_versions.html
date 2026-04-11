@@ -496,8 +496,8 @@ const REPO_GROUPS = [
   {
     name: 'Core Components',
     repos: [
-      { owner: 'homebridge', repo: 'homebridge',               label: 'Core server', useNpm: true },
-      { owner: 'homebridge', repo: 'homebridge-config-ui-x',   label: 'Config UI' },
+      { owner: 'homebridge', repo: 'homebridge',               label: 'Homebridge', useNpm: true },
+      { owner: 'homebridge', repo: 'homebridge-config-ui-x',   label: 'Homebridge UI' },
     ]
   },
   {
@@ -515,7 +515,7 @@ const REPO_GROUPS = [
       { owner: 'homebridge', repo: 'HAP-NodeJS',               label: 'HAP-NodeJS 0.x', useNpm: true, npmPackage: 'hap-nodejs' },
       { owner: 'homebridge', repo: 'HAP-NodeJS',               label: 'HAP-NodeJS 2.x', useNpm: true, npmPackage: '@homebridge/hap-nodejs' },
       { owner: 'homebridge', repo: 'ciao',                     label: 'ciao mDNS' },
-      { owner: 'homebridge', repo: 'bonjour',                  label: 'Bonjour', useNpm: true, npmPackage: 'bonjour-hap' },
+      { owner: 'homebridge', repo: 'bonjour',                  label: 'Bonjour mDNS', useNpm: true, npmPackage: 'bonjour-hap' },
       { owner: 'homebridge', repo: 'hap-client',               label: 'HAP client'},
     ]
   }
@@ -660,8 +660,8 @@ function renderCard(owner, repo, label, releases) {
       <div class="repo-card">
         <div class="card-header">
           <div class="card-meta">
-            <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${owner}/${repo}</a>
-            <span class="repo-label">${label}</span>
+            <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${label}</a>
+            <span class="repo-label">${owner}/${repo}</span>
           </div>
           <div class="card-badges"><span class="badge badge-stale">No releases</span></div>
         </div>
@@ -686,8 +686,8 @@ function renderCard(owner, repo, label, releases) {
     <div class="repo-card">
       <div class="card-header">
         <div class="card-meta">
-          <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${owner}/${repo}</a>
-          <span class="repo-label">${label}</span>
+          <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${label}</a>
+          <span class="repo-label">${owner}/${repo}</span>
         </div>
         <div class="card-badges">${badges.join('')}</div>
       </div>
@@ -700,8 +700,8 @@ function renderError(owner, repo, label, message) {
     <div class="repo-card">
       <div class="card-header">
         <div class="card-meta">
-          <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${owner}/${repo}</a>
-          <span class="repo-label">${label}</span>
+          <a class="repo-name" href="https://github.com/${owner}/${repo}" target="_blank">${label}</a>
+          <span class="repo-label">${owner}/${repo}</span>
         </div>
         <div class="card-badges"><span class="badge badge-stale">Error</span></div>
       </div>
