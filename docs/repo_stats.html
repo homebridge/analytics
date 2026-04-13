@@ -194,6 +194,35 @@
     letter-spacing: 0.06em;
     color: var(--muted);
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background 0.15s;
+  }
+
+  th:hover {
+    background: var(--border);
+  }
+
+  th.sortable::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 6px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    opacity: 0.3;
+  }
+
+  th.sort-asc::after {
+    border-bottom: 5px solid var(--accent);
+    opacity: 1;
+  }
+
+  th.sort-desc::after {
+    border-top: 5px solid var(--accent);
+    opacity: 1;
   }
 
   td {
@@ -284,7 +313,7 @@
     </div>
     <div class="header-right">
       <span id="last-updated"></span>
-      <button class="refresh-btn" id="refresh-btn" onclick="loadStats()">
+      <button class="refresh-btn" id="refresh-btn" onclick="loadStats(true)">
         <svg class="refresh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M13.5 8A5.5 5.5 0 112.9 5M2.5 2v3h3"/>
         </svg>
@@ -305,11 +334,11 @@
     <table>
       <thead>
         <tr>
-          <th>Repository</th>
-          <th style="text-align:center">Issues</th>
-          <th style="text-align:center">PRs</th>
-          <th style="text-align:center">Dependabot</th>
-          <th style="text-align:center">Copilot</th>
+          <th class="sortable" data-sort="name">Repository</th>
+          <th class="sortable" data-sort="issues" style="text-align:center">Issues</th>
+          <th class="sortable" data-sort="prs" style="text-align:center">PRs</th>
+          <th class="sortable" data-sort="dependabot" style="text-align:center">Dependabot</th>
+          <th class="sortable" data-sort="copilot" style="text-align:center">Copilot</th>
         </tr>
       </thead>
       <tbody id="repo-tbody">
@@ -339,20 +368,71 @@
 
 <script>
 const ORG_NAME = 'homebridge';
+const CACHE_KEY = 'homebridge_stats_cache';
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+let repoData = [];
+let currentSort = { column: 'activity', direction: 'desc' };
+
+function getCachedData() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+    
+    const { timestamp, data } = JSON.parse(cached);
+    const age = Date.now() - timestamp;
+    
+    if (age < CACHE_DURATION) {
+      console.log(`Using cached data (${Math.round(age / 1000 / 60)} minutes old)`);
+      return data;
+    }
+    
+    console.log('Cache expired, fetching fresh data');
+    return null;
+  } catch (error) {
+    console.error('Cache read error:', error);
+    return null;
+  }
+}
+
+function setCachedData(data) {
+  try {
+    const cacheObject = {
+      timestamp: Date.now(),
+      data: data
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
+    console.log('Data cached successfully');
+  } catch (error) {
+    console.error('Cache write error:', error);
+  }
+}
+
+async function fetchWithRetry(url, options = {}, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      return res;
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+    }
+  }
+}
 
 async function fetchOrgRepos() {
   const repos = [];
   let page = 1;
   
   while (true) {
-    const res = await fetch(
+    const res = await fetchWithRetry(
       `https://api.github.com/orgs/${ORG_NAME}/repos?per_page=100&page=${page}`,
       { headers: { 'Accept': 'application/vnd.github+json' } }
     );
-    
-    if (!res.ok) {
-      throw new Error(`Failed to fetch repositories: ${res.status}`);
-    }
     
     const data = await res.json();
     if (data.length === 0) break;
@@ -366,14 +446,10 @@ async function fetchOrgRepos() {
 
 async function fetchRepoStats(owner, repo) {
   // Fetch issues (includes PRs)
-  const issuesRes = await fetch(
+  const issuesRes = await fetchWithRetry(
     `https://api.github.com/repos/${owner}/${repo}/issues?state=open&per_page=100`,
     { headers: { 'Accept': 'application/vnd.github+json' } }
   );
-  
-  if (!issuesRes.ok) {
-    throw new Error(`Failed to fetch issues for ${repo}: ${issuesRes.status}`);
-  }
   
   const issues = await issuesRes.json();
   
@@ -395,7 +471,7 @@ async function fetchRepoStats(owner, repo) {
         issue.user.login === 'copilot-autofix[bot]' || 
         issue.user.login === 'github-advanced-security[bot]' ||
         issue.user.login === 'copilot[bot]' ||
-        issue.user.login.includes('copilot')
+        issue.user.login.includes('copilot') || issue.user.login.includes('Copilot')
       )) {
         copilotCount++;
       }
@@ -411,12 +487,100 @@ function escHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-async function loadStats() {
+function sortRepos(column) {
+  // Toggle direction if clicking the same column
+  if (currentSort.column === column) {
+    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.column = column;
+    currentSort.direction = 'desc'; // Default to descending for new column
+  }
+
+  // Sort the data
+  repoData.sort((a, b) => {
+    let aVal, bVal;
+    
+    switch (column) {
+      case 'name':
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
+        break;
+      case 'issues':
+        aVal = a.issueCount;
+        bVal = b.issueCount;
+        break;
+      case 'prs':
+        aVal = a.prCount;
+        bVal = b.prCount;
+        break;
+      case 'dependabot':
+        aVal = a.dependabotCount;
+        bVal = b.dependabotCount;
+        break;
+      case 'copilot':
+        aVal = a.copilotCount;
+        bVal = b.copilotCount;
+        break;
+      case 'activity':
+      default:
+        aVal = a.issueCount + a.prCount;
+        bVal = b.issueCount + b.prCount;
+    }
+    
+    if (typeof aVal === 'string') {
+      return currentSort.direction === 'asc' 
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal);
+    } else {
+      return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+    }
+  });
+
+  renderTable();
+  updateSortIndicators();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('repo-tbody');
+  tbody.innerHTML = repoData.map(stat => `
+    <tr>
+      <td><a class="repo-name" href="${escHtml(stat.url)}" target="_blank">${escHtml(stat.name)}</a></td>
+      <td class="stat-cell stat-issues">${stat.issueCount}</td>
+      <td class="stat-cell stat-prs">${stat.prCount}</td>
+      <td class="stat-cell stat-dependabot">${stat.dependabotCount}</td>
+      <td class="stat-cell stat-copilot">${stat.copilotCount}</td>
+    </tr>
+  `).join('');
+}
+
+function updateSortIndicators() {
+  // Remove all sort classes
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+  });
+  
+  // Add sort class to current column
+  const activeHeader = document.querySelector(`th[data-sort="${currentSort.column}"]`);
+  if (activeHeader) {
+    activeHeader.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+  }
+}
+
+async function loadStats(forceRefresh = false) {
   const btn = document.getElementById('refresh-btn');
   btn.disabled = true;
   btn.classList.add('spinning');
 
   try {
+    // Try to use cached data unless force refresh
+    if (!forceRefresh) {
+      const cachedData = getCachedData();
+      if (cachedData) {
+        displayCachedResults(cachedData);
+        return;
+      }
+    }
+    
     // Fetch all repositories
     const repos = await fetchOrgRepos();
     
@@ -446,65 +610,131 @@ async function loadStats() {
       }
     });
     
-    // Sort by total activity (issues + PRs)
-    repoStats.sort((a, b) => {
-      const aTotal = a.issueCount + a.prCount;
-      const bTotal = b.issueCount + b.prCount;
-      return bTotal - aTotal;
-    });
+    // Cache the results
+    const cacheData = {
+      repoCount: repos.length,
+      totalIssues,
+      totalPRs,
+      totalDependabot,
+      totalCopilot,
+      repoStats
+    };
+    setCachedData(cacheData);
     
-    // Update summary
-    document.getElementById('summary').innerHTML = `
-      <div class="metric">
-        <div class="metric-label">Total Repositories</div>
-        <div class="metric-value">${repos.length}</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Total Issues</div>
-        <div class="metric-value stat-issues">${totalIssues}</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Total PRs</div>
-        <div class="metric-value stat-prs">${totalPRs}</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Dependabot PRs</div>
-        <div class="metric-value stat-dependabot">${totalDependabot}</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Copilot PRs</div>
-        <div class="metric-value stat-copilot">${totalCopilot}</div>
-      </div>`;
-    
-    // Update table
-    const tbody = document.getElementById('repo-tbody');
-    tbody.innerHTML = repoStats.map(stat => `
-      <tr>
-        <td><a class="repo-name" href="${escHtml(stat.url)}" target="_blank">${escHtml(stat.name)}</a></td>
-        <td class="stat-cell stat-issues">${stat.issueCount}</td>
-        <td class="stat-cell stat-prs">${stat.prCount}</td>
-        <td class="stat-cell stat-dependabot">${stat.dependabotCount}</td>
-        <td class="stat-cell stat-copilot">${stat.copilotCount}</td>
-      </tr>
-    `).join('');
-    
-    // Update timestamp
-    const now = new Date();
-    document.getElementById('last-updated').textContent =
-      `Updated ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+    // Display the results
+    displayResults(cacheData);
     
   } catch (error) {
     console.error('Error loading stats:', error);
+    
+    // Provide more specific error message
+    let errorMsg = 'Failed to load statistics';
+    let errorDetails = '';
+    
+    if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+      errorMsg = 'Cannot connect to GitHub API';
+      errorDetails = 'This page requires direct access to api.github.com. Possible causes:<br>' +
+        '• Network connectivity issues<br>' +
+        '• CORS restrictions (try opening in new tab)<br>' +
+        '• Ad blocker or browser extension blocking the request<br>' +
+        '• DNS resolution failure<br><br>' +
+        'Try: Opening this page directly from a web server or disabling browser extensions.';
+    } else if (error.message.includes('HTTP 403')) {
+      errorMsg = 'GitHub API rate limit exceeded';
+      errorDetails = 'Anonymous requests are limited to 60 per hour. Please try again later.';
+    } else if (error.message.includes('HTTP 404')) {
+      errorMsg = 'Organization not found';
+      errorDetails = 'Please check the organization name in the configuration.';
+    } else if (error.message) {
+      errorMsg = `Error: ${error.message}`;
+    }
+    
     document.getElementById('summary').innerHTML = `
       <div class="metric" style="grid-column: 1 / -1;">
         <div class="metric-label">Error</div>
-        <div class="metric-value" style="font-size:14px;color:var(--issue)">Failed to load statistics: ${escHtml(error.message)}</div>
+        <div class="metric-value" style="font-size:14px;color:var(--issue)">${escHtml(errorMsg)}</div>
+        ${errorDetails ? `<div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">${errorDetails}</div>` : ''}
       </div>`;
+      
+    // Clear table on error
+    document.getElementById('repo-tbody').innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">
+          Failed to load repository data. ${errorDetails ? 'See error details above.' : 'Click Refresh to retry.'}
+        </td>
+      </tr>`;
   } finally {
     btn.disabled = false;
     btn.classList.remove('spinning');
   }
 }
+
+function displayCachedResults(data) {
+  displayResults(data);
+  
+  // Update timestamp to show cache age
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    const { timestamp } = JSON.parse(cached);
+    const age = Math.round((Date.now() - timestamp) / 1000 / 60);
+    const now = new Date(timestamp);
+    document.getElementById('last-updated').textContent =
+      `Cached ${age}m ago (${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})})`;
+  }
+}
+
+function displayResults(data) {
+  const { repoCount, totalIssues, totalPRs, totalDependabot, totalCopilot, repoStats } = data;
+  
+  // Store data globally
+  repoData = repoStats;
+  
+  // Apply current sort
+  currentSort.column = 'activity';
+  currentSort.direction = 'desc';
+  sortRepos('activity');
+  
+  // Update summary
+  document.getElementById('summary').innerHTML = `
+    <div class="metric">
+      <div class="metric-label">Total Repositories</div>
+      <div class="metric-value">${repoCount}</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Total Issues</div>
+      <div class="metric-value stat-issues">${totalIssues}</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Total PRs</div>
+      <div class="metric-value stat-prs">${totalPRs}</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Dependabot PRs</div>
+      <div class="metric-value stat-dependabot">${totalDependabot}</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Copilot PRs</div>
+      <div class="metric-value stat-copilot">${totalCopilot}</div>
+    </div>`;
+  
+  // Update timestamp (only if not cached)
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (!cached || Math.abs(Date.now() - JSON.parse(cached).timestamp) < 1000) {
+    const now = new Date();
+    document.getElementById('last-updated').textContent =
+      `Updated ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+  }
+}
+
+// Add click handlers to sortable headers
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const column = th.getAttribute('data-sort');
+      sortRepos(column);
+    });
+  });
+});
 
 loadStats();
 </script>
