@@ -100,7 +100,7 @@ async function getReleaseDownloads() {
     return downloadsMap;
 
   } catch (error) {
-    console.error('Error fetching release data:', error);
+    console.error(`Error fetching release data: ${error.message}`);
     return {};
   }
 }
@@ -145,7 +145,7 @@ async function getNpmLastWeekDownloads(pluginNames) {
           Object.values(data).forEach(item => packageDLCountMap[item.package] = item.downloads);
         }
       } else {
-        console.log(`Error fetching data for npm last-week download: ${res.status} ${res.statusText}`);
+        console.error(`Error fetching npm last-week download for ${q}: ${res.status} ${res.statusText}`);
         q.split(',').forEach(item => packageDLCountMap[item] = 0);
       }
     } catch (err) {
