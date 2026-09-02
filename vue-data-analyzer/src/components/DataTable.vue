@@ -64,6 +64,14 @@
           <option value="false">Not Verified</option>
         </select>
       </label>
+      <label :class="{ 'active-filter': filters.transport }">Transport:
+        <select v-model="filters.transport">
+          <option value="">All</option>
+          <option value="HAP">HAP</option>
+          <option value="Matter">Matter</option>
+          <option value="HAP + Matter">HAP + Matter</option>
+        </select>
+      </label>
 
       <button @click="resetFilters">Reset Filters</button>
     </div>
@@ -87,6 +95,7 @@
             <th :class="getHeaderClass('engines.homebridge')" @click="sortTable('engines.homebridge')">Engine Homebridge</th>
             <th :class="getHeaderClass('homebridge2Compatibility')" @click="sortTable('homebridge2Compatibility')">Homebridge 2.0 Ready</th>
             <th :class="getHeaderClass('verified')" @click="sortTable('verified')">Verified</th>
+            <th :class="getHeaderClass('transport')" @click="sortTable('transport')">Transport</th>
           </tr>
         </thead>
         <tbody>
@@ -108,6 +117,7 @@
             <td>{{ plugin.engines.homebridge }}</td>
             <td>{{ isHomebridge2Ready(plugin) }}</td>
             <td>{{ plugin.verified ? 'Verified' : 'Not Verified' }}</td>
+            <td>{{ getPluginTransport(plugin) }}</td>
           </tr>
         </tbody>
       </table>
@@ -116,6 +126,8 @@
 </template>
 
 <script>
+import { getPluginTransport } from '../pluginTransports.js';
+
 export default {
   props: {
     plugins: Array
@@ -134,7 +146,8 @@ export default {
         node: "",
         homebridge: "",
         homebridge2Compatibility: "",
-        verified: ""
+        verified: "",
+        transport: ""
       },
       downloadsComparison: 'equal',
       githubStarsComparison: 'equal',
@@ -176,6 +189,7 @@ export default {
           (this.isHomebridge2Ready(plugin) === this.filters.homebridge2Compatibility);
 
         const verifiedCondition = this.filters.verified === "" || (plugin.verified === (this.filters.verified === "true"));
+        const transportCondition = this.filters.transport === "" || this.getPluginTransport(plugin) === this.filters.transport;
 
         return (
           (this.filters.name === "" || (plugin.name && plugin.name.toLowerCase().includes(this.filters.name.toLowerCase()))) &&
@@ -189,7 +203,8 @@ export default {
           nodeCondition &&
           homebridgeCondition &&
           compatibilityCondition &&
-          verifiedCondition
+          verifiedCondition &&
+          transportCondition
         );
       });
     },
@@ -229,7 +244,8 @@ export default {
         node: "",
         homebridge: "",
         homebridge2Compatibility: "",
-        verified: ""
+        verified: "",
+        transport: ""
       };
       this.downloadsComparison = 'equal';
       this.githubStarsComparison = 'equal';
@@ -256,6 +272,8 @@ export default {
           return this.isHomebridge2Ready(plugin);
         case 'verified':
           return plugin.verified;
+        case 'transport':
+          return this.getPluginTransport(plugin);
         default:
           return plugin[this.sortKey] || "";
       }
@@ -264,6 +282,7 @@ export default {
       const hbEngines = plugin.engines?.homebridge?.split('||').map((x) => x.trim()) || [];
       return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'Supported' : 'Not ready';
     },
+    getPluginTransport,
     sortTable(key) {
       if (this.sortKey === key) {
         this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
