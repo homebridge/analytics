@@ -22,13 +22,13 @@
         </select>
         <input v-model.number="filters.downloads" placeholder="Filter by downloads" />
       </label>
-      <label :class="{ 'active-filter': filters.githubStars }">GitHub Stars: 
+      <label :class="{ 'active-filter': filters.githubStars !== '' }">GitHub Stars:
         <select v-model="githubStarsComparison">
           <option value="equal">=</option>
           <option value="greater">></option>
           <option value="less">&lt;</option>
         </select>
-        <input v-model.number="filters.githubStars" placeholder="Filter by GitHub stars" />
+        <input v-model.number="filters.githubStars" placeholder="Filter by stars" />
       </label>
       <label :class="{ 'active-filter': filters.created }">Created: 
         <select v-model="createdComparison">
@@ -97,9 +97,9 @@
             <td>{{ plugin.owner }}</td>
             <td>{{ plugin.downloads }}</td>
             <td>
-              <span v-if="plugin.githubRepo && plugin.githubStars !== null">
-                <a :href="plugin.githubRepo" target="_blank" rel="noopener noreferrer">{{ plugin.githubStars }}</a>
-              </span>
+              <a v-if="plugin.githubRepo" :href="plugin.githubRepo" target="_blank" rel="noopener noreferrer">
+                {{ Number.isInteger(plugin.githubStars) ? plugin.githubStars : 'N/A' }}
+              </a>
               <span v-else>N/A</span>
             </td>
             <td>{{ new Date(plugin.created).toLocaleDateString() }}</td>
@@ -154,10 +154,10 @@ export default {
           plugin.downloads === this.filters.downloads) : true;
 
         const githubStarsValid = this.filters.githubStars !== "" && this.filters.githubStars !== undefined;
-        const githubStarsCondition = githubStarsValid ? 
-          (this.githubStarsComparison === 'greater' ? (plugin.githubStars || 0) > this.filters.githubStars :
-          this.githubStarsComparison === 'less' ? (plugin.githubStars || 0) < this.filters.githubStars :
-          (plugin.githubStars || 0) === this.filters.githubStars) : true;
+        const githubStarsCondition = !githubStarsValid || (Number.isInteger(plugin.githubStars) &&
+          (this.githubStarsComparison === 'greater' ? plugin.githubStars > this.filters.githubStars :
+          this.githubStarsComparison === 'less' ? plugin.githubStars < this.filters.githubStars :
+          plugin.githubStars === this.filters.githubStars));
 
         const createdValid = this.filters.created && this.filters.created !== "";
         const createdCondition = createdValid ?
@@ -243,7 +243,7 @@ export default {
         case 'downloads':
           return plugin.downloads;
         case 'githubStars':
-          return plugin.githubStars || 0;
+          return Number.isInteger(plugin.githubStars) ? plugin.githubStars : -1;
         case 'created':
           return new Date(plugin.created);
         case 'lastUpdated':
