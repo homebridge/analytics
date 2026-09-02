@@ -15,6 +15,10 @@ const configuredPluginLimit = Number(process.env.PLUGIN_LIMIT);
 const PLUGIN_LIMIT = Number.isInteger(configuredPluginLimit) && configuredPluginLimit > 0
   ? configuredPluginLimit
   : Infinity;
+const configuredMaxPluginPages = Number(process.env.MAX_PLUGIN_SEARCH_PAGES);
+const MAX_PLUGIN_SEARCH_PAGES = Number.isInteger(configuredMaxPluginPages) && configuredMaxPluginPages > 0
+  ? configuredMaxPluginPages
+  : 100;
 
 // Limit concurrent fetches to 10 at a time
 const limit = pLimit(10);
@@ -167,7 +171,10 @@ export async function getHomebridgePlugins(options = {}) {
   const fetchFn = options.fetchFn || fetch;
   const sleepFn = options.sleepFn || sleep;
   const requestDelayMs = options.requestDelayMs ?? 1000;
-  let allData = [];
+  const maxRetries = options.maxRetries ?? 2;
+  const maxPages = options.maxPages ?? MAX_PLUGIN_SEARCH_PAGES;
+  const pluginsByName = new Map();
+  let reportedTotal = null;
   let page = 0;
   let keepFetching = true;
 
@@ -175,18 +182,43 @@ export async function getHomebridgePlugins(options = {}) {
     while (keepFetching) {
       console.log(`Fetching page ${page + 1}...`);
       const url = `https://registry.npmjs.org/-/v1/search?text=keywords:homebridge-plugin&size=${resultsPerPage}&from=${page * resultsPerPage}`;
-      const response = await fetchFn(url);
+      let response;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        response = await fetchFn(url);
+        if (response.ok || ![429, 500, 502, 503, 504].includes(response.status) || attempt === maxRetries) break;
+
+        const retryAfterHeader = response.headers?.get?.('retry-after');
+        const retryAfter = retryAfterHeader === null || retryAfterHeader === undefined ? NaN : Number(retryAfterHeader);
+        const retryDelay = Number.isFinite(retryAfter) ? Math.max(1000, retryAfter * 1000) : 2000 * (2 ** attempt);
+        console.warn(`npm plugin search returned ${response.status}; retrying in ${retryDelay}ms`);
+        await sleepFn(retryDelay);
+      }
       if (response.ok) {
         const data = await response.json();
+        const objects = Array.isArray(data.objects) ? data.objects : [];
+        const total = Number(data.total);
+        if (reportedTotal === null && Number.isFinite(total) && total >= 0) reportedTotal = total;
 
-        // Concatenate current page data to allData
-        allData = allData.concat(data.objects);
+        const countBeforePage = pluginsByName.size;
+        for (const item of objects) {
+          const name = item?.package?.name;
+          if (name && !pluginsByName.has(name)) pluginsByName.set(name, item);
+        }
+        const addedOnPage = pluginsByName.size - countBeforePage;
+        const searchedResults = (page + 1) * resultsPerPage;
+        const reachedReportedTotal = reportedTotal !== null && searchedResults >= reportedTotal;
 
-        // Stop fetching if less than a full page of results is returned or the limit is reached
-        if (data.objects.length < resultsPerPage || allData.length >= pluginLimit) {
+        if (addedOnPage === 0 && reportedTotal !== null && pluginsByName.size < reportedTotal) {
+          console.warn(`npm repeated a search page after ${pluginsByName.size} unique plugins; reported total is ${reportedTotal}`);
+        }
+
+        if (objects.length < resultsPerPage || pluginsByName.size >= pluginLimit || reachedReportedTotal || addedOnPage === 0) {
           keepFetching = false;
         } else {
           page++;
+          if (page >= maxPages) {
+            throw new Error(`Stopped after ${maxPages} npm search pages without reaching the reported total`);
+          }
         }
         if (requestDelayMs > 0) await sleepFn(requestDelayMs);
       } else {
@@ -194,13 +226,14 @@ export async function getHomebridgePlugins(options = {}) {
       }
     }
 
-    console.log(`Fetched data for ${allData.length} plugins`);
-    const plugins = Number.isFinite(pluginLimit) ? allData.slice(0, pluginLimit) : allData;
-    return plugins.map(pkg => pkg.package.name);
+    const effectiveLimit = Math.min(pluginLimit, reportedTotal ?? Infinity);
+    const plugins = [...pluginsByName.keys()].slice(0, effectiveLimit);
+    console.log(`Fetched ${plugins.length} unique plugins${reportedTotal === null ? '' : ` (npm reported ${reportedTotal})`}`);
+    return plugins;
 
   } catch (error) {
     console.error('Error fetching plugin list from npm:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -304,7 +337,7 @@ export async function getNpmLastWeekDownloads(pluginNames, previousPlugins = new
 
         const retryAfterHeader = res.headers?.get?.('retry-after');
         const retryAfter = retryAfterHeader === null || retryAfterHeader === undefined ? NaN : Number(retryAfterHeader);
-        const retryDelay = Number.isFinite(retryAfter) ? retryAfter * 1000 : 2000 * (2 ** attempt);
+        const retryDelay = Number.isFinite(retryAfter) ? Math.max(1000, retryAfter * 1000) : 2000 * (2 ** attempt);
         console.warn(`npm downloads request returned ${res.status}; retrying in ${retryDelay}ms`);
         await sleepFn(retryDelay);
       }
