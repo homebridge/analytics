@@ -22,6 +22,14 @@
         </select>
         <input v-model.number="filters.downloads" placeholder="Filter by downloads" />
       </label>
+      <label :class="{ 'active-filter': filters.githubStars !== '' }">GitHub Stars:
+        <select v-model="githubStarsComparison">
+          <option value="equal">=</option>
+          <option value="greater">></option>
+          <option value="less">&lt;</option>
+        </select>
+        <input v-model.number="filters.githubStars" placeholder="Filter by stars" />
+      </label>
       <label :class="{ 'active-filter': filters.created }">Created: 
         <select v-model="createdComparison">
           <option value="after">After</option>
@@ -56,6 +64,14 @@
           <option value="false">Not Verified</option>
         </select>
       </label>
+      <label :class="{ 'active-filter': filters.transport }">Transport:
+        <select v-model="filters.transport">
+          <option value="">All</option>
+          <option value="HAP">HAP</option>
+          <option value="Matter">Matter</option>
+          <option value="HAP + Matter">HAP + Matter</option>
+        </select>
+      </label>
 
       <button @click="resetFilters">Reset Filters</button>
     </div>
@@ -72,27 +88,36 @@
             <th :class="getHeaderClass('version')" @click="sortTable('version')">Version</th>
             <th :class="getHeaderClass('owner')" @click="sortTable('owner')">Owner</th>
             <th :class="getHeaderClass('downloads')" @click="sortTable('downloads')">Downloads</th>
+            <th :class="getHeaderClass('githubStars')" @click="sortTable('githubStars')">GitHub Stars</th>
             <th :class="getHeaderClass('created')" @click="sortTable('created')">Created</th>
             <th :class="getHeaderClass('lastUpdated')" @click="sortTable('lastUpdated')">Last Updated</th>
             <th :class="getHeaderClass('engines.node')" @click="sortTable('engines.node')">Engine Node</th>
             <th :class="getHeaderClass('engines.homebridge')" @click="sortTable('engines.homebridge')">Engine Homebridge</th>
             <th :class="getHeaderClass('homebridge2Compatibility')" @click="sortTable('homebridge2Compatibility')">Homebridge 2.0 Ready</th>
             <th :class="getHeaderClass('verified')" @click="sortTable('verified')">Verified</th>
+            <th :class="getHeaderClass('transport')" @click="sortTable('transport')">Transport</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="plugin in sortedPlugins" :key="plugin.name" @click="selectPlugin(plugin)">
-            <td><a :href="'https://www.npmjs.com/package/' + plugin.name" target="_blank">{{ plugin.name }}</a></td>
+            <td><a :href="'https://www.npmjs.com/package/' + plugin.name" target="_blank" rel="noopener noreferrer">{{ plugin.name }}</a></td>
             <td>{{ plugin.description }}</td>
             <td>{{ plugin.version }}</td>
             <td>{{ plugin.owner }}</td>
             <td>{{ plugin.downloads }}</td>
+            <td>
+              <a v-if="plugin.githubRepo" :href="plugin.githubRepo" target="_blank" rel="noopener noreferrer">
+                {{ Number.isInteger(plugin.githubStars) ? plugin.githubStars : 'N/A' }}
+              </a>
+              <span v-else>N/A</span>
+            </td>
             <td>{{ new Date(plugin.created).toLocaleDateString() }}</td>
             <td>{{ new Date(plugin.lastUpdated).toLocaleDateString() }}</td>
             <td>{{ plugin.engines.node }}</td>
             <td>{{ plugin.engines.homebridge }}</td>
             <td>{{ isHomebridge2Ready(plugin) }}</td>
             <td>{{ plugin.verified ? 'Verified' : 'Not Verified' }}</td>
+            <td>{{ getPluginTransport(plugin) }}</td>
           </tr>
         </tbody>
       </table>
@@ -101,6 +126,8 @@
 </template>
 
 <script>
+import { getPluginTransport } from '../pluginTransports.js';
+
 export default {
   props: {
     plugins: Array
@@ -113,14 +140,17 @@ export default {
         version: "",
         owner: "",
         downloads: "",
+        githubStars: "",
         created: "",
         lastUpdated: "",
         node: "",
         homebridge: "",
         homebridge2Compatibility: "",
-        verified: ""
+        verified: "",
+        transport: ""
       },
       downloadsComparison: 'equal',
+      githubStarsComparison: 'equal',
       createdComparison: 'after',
       lastUpdatedComparison: 'after',
       sortKey: null,
@@ -135,6 +165,12 @@ export default {
           (this.downloadsComparison === 'greater' ? plugin.downloads > this.filters.downloads :
           this.downloadsComparison === 'less' ? plugin.downloads < this.filters.downloads :
           plugin.downloads === this.filters.downloads) : true;
+
+        const githubStarsValid = this.filters.githubStars !== "" && this.filters.githubStars !== undefined;
+        const githubStarsCondition = !githubStarsValid || (Number.isInteger(plugin.githubStars) &&
+          (this.githubStarsComparison === 'greater' ? plugin.githubStars > this.filters.githubStars :
+          this.githubStarsComparison === 'less' ? plugin.githubStars < this.filters.githubStars :
+          plugin.githubStars === this.filters.githubStars));
 
         const createdValid = this.filters.created && this.filters.created !== "";
         const createdCondition = createdValid ?
@@ -153,6 +189,7 @@ export default {
           (this.isHomebridge2Ready(plugin) === this.filters.homebridge2Compatibility);
 
         const verifiedCondition = this.filters.verified === "" || (plugin.verified === (this.filters.verified === "true"));
+        const transportCondition = this.filters.transport === "" || this.getPluginTransport(plugin) === this.filters.transport;
 
         return (
           (this.filters.name === "" || (plugin.name && plugin.name.toLowerCase().includes(this.filters.name.toLowerCase()))) &&
@@ -160,12 +197,14 @@ export default {
           (this.filters.version === "" || (plugin.version && plugin.version.toLowerCase().includes(this.filters.version.toLowerCase()))) &&
           (this.filters.owner === "" || (plugin.owner && plugin.owner.toLowerCase().includes(this.filters.owner.toLowerCase()))) &&
           downloadsCondition &&
+          githubStarsCondition &&
           createdCondition &&
           lastUpdatedCondition &&
           nodeCondition &&
           homebridgeCondition &&
           compatibilityCondition &&
-          verifiedCondition
+          verifiedCondition &&
+          transportCondition
         );
       });
     },
@@ -199,14 +238,17 @@ export default {
         version: "",
         owner: "",
         downloads: "",
+        githubStars: "",
         created: "",
         lastUpdated: "",
         node: "",
         homebridge: "",
         homebridge2Compatibility: "",
-        verified: ""
+        verified: "",
+        transport: ""
       };
       this.downloadsComparison = 'equal';
+      this.githubStarsComparison = 'equal';
       this.createdComparison = 'after';
       this.lastUpdatedComparison = 'after';
       this.sortKey = null;
@@ -216,6 +258,8 @@ export default {
       switch (this.sortKey) {
         case 'downloads':
           return plugin.downloads;
+        case 'githubStars':
+          return Number.isInteger(plugin.githubStars) ? plugin.githubStars : -1;
         case 'created':
           return new Date(plugin.created);
         case 'lastUpdated':
@@ -228,6 +272,8 @@ export default {
           return this.isHomebridge2Ready(plugin);
         case 'verified':
           return plugin.verified;
+        case 'transport':
+          return this.getPluginTransport(plugin);
         default:
           return plugin[this.sortKey] || "";
       }
@@ -236,6 +282,7 @@ export default {
       const hbEngines = plugin.engines?.homebridge?.split('||').map((x) => x.trim()) || [];
       return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'Supported' : 'Not ready';
     },
+    getPluginTransport,
     sortTable(key) {
       if (this.sortKey === key) {
         this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
