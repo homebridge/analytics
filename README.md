@@ -13,4 +13,4 @@ GitHub star counts are cached in `homebridge_plugins.json` and refreshed increme
 
 npm download counts for unscoped packages use bulk requests. Because npm does not support scoped packages in bulk lookups, scoped counts are cached and refreshed incrementally (100 per run by default). Transient failures are retried, and cached counts are retained if npm rate-limits the collector. Set `NPM_SCOPED_DOWNLOAD_REQUEST_LIMIT`, `NPM_DOWNLOAD_REFRESH_DAYS`, or `NPM_DOWNLOAD_REQUEST_DELAY_MS` to override those defaults.
 
-The production collector paginates through all Homebridge plugins returned by npm. Set `PLUGIN_LIMIT` to a positive number only when a smaller local test run is desired.
+The production collector paginates through all Homebridge plugins reported by npm, deduplicates package names, and stops if npm repeats a page. Set `PLUGIN_LIMIT` to a positive number only when a smaller local test run is desired. `MAX_PLUGIN_SEARCH_PAGES` defaults to 100 as a defensive safeguard against upstream pagination failures.

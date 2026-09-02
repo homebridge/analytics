@@ -137,7 +137,7 @@ test('getHomebridgePlugins paginates until npm exhausts its results', async () =
     requestDelayMs: 0,
     fetchFn: async () => ({
       ok: true,
-      json: async () => ({ objects: pages[requestCount++].map(name => ({ package: { name } })) }),
+      json: async () => ({ total: 5, objects: pages[requestCount++].map(name => ({ package: { name } })) }),
     }),
   });
 
@@ -155,7 +155,7 @@ test('getHomebridgePlugins supports an explicit local testing limit', async () =
       requestCount++;
       return {
         ok: true,
-        json: async () => ({ objects: [
+        json: async () => ({ total: 100, objects: [
           { package: { name: `plugin-${requestCount * 2 - 1}` } },
           { package: { name: `plugin-${requestCount * 2}` } },
         ] }),
@@ -165,6 +165,78 @@ test('getHomebridgePlugins supports an explicit local testing limit', async () =
 
   assert.equal(requestCount, 2);
   assert.deepEqual(plugins, ['plugin-1', 'plugin-2', 'plugin-3']);
+});
+
+test('getHomebridgePlugins stops at the reported total even when npm returns full pages', async () => {
+  let requestCount = 0;
+  const plugins = await getHomebridgePlugins({
+    resultsPerPage: 2,
+    requestDelayMs: 0,
+    fetchFn: async () => {
+      requestCount++;
+      return {
+        ok: true,
+        json: async () => ({
+          total: 5,
+          objects: [
+            { package: { name: `plugin-${requestCount * 2 - 1}` } },
+            { package: { name: `plugin-${requestCount * 2}` } },
+          ],
+        }),
+      };
+    },
+  });
+
+  assert.equal(requestCount, 3);
+  assert.deepEqual(plugins, ['plugin-1', 'plugin-2', 'plugin-3', 'plugin-4', 'plugin-5']);
+});
+
+test('getHomebridgePlugins stops and deduplicates when npm repeats a page', async () => {
+  let requestCount = 0;
+  const plugins = await getHomebridgePlugins({
+    resultsPerPage: 2,
+    requestDelayMs: 0,
+    fetchFn: async () => {
+      requestCount++;
+      return {
+        ok: true,
+        json: async () => ({
+          total: 6,
+          objects: [
+            { package: { name: 'plugin-1' } },
+            { package: { name: 'plugin-2' } },
+          ],
+        }),
+      };
+    },
+  });
+
+  assert.equal(requestCount, 2);
+  assert.deepEqual(plugins, ['plugin-1', 'plugin-2']);
+});
+
+test('getHomebridgePlugins retries a throttled search page', async () => {
+  let requestCount = 0;
+  const delays = [];
+  const plugins = await getHomebridgePlugins({
+    resultsPerPage: 2,
+    requestDelayMs: 0,
+    sleepFn: async delay => delays.push(delay),
+    fetchFn: async () => {
+      requestCount++;
+      if (requestCount === 1) {
+        return { ok: false, status: 429, statusText: 'Too Many Requests', headers: { get: () => '0' } };
+      }
+      return {
+        ok: true,
+        json: async () => ({ total: 1, objects: [{ package: { name: 'plugin-1' } }] }),
+      };
+    },
+  });
+
+  assert.equal(requestCount, 2);
+  assert.deepEqual(delays, [1000]);
+  assert.deepEqual(plugins, ['plugin-1']);
 });
 
 test('getPluginTransport applies transport keyword declarations', () => {
