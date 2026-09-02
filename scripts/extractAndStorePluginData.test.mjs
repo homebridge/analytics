@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addGithubStars, extractGithubRepo } from './extractAndStorePluginData.mjs';
+import { addGithubStars, extractGithubRepo, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads } from './extractAndStorePluginData.mjs';
 
 test('extractGithubRepo supports common npm repository formats', () => {
   const expected = {
@@ -62,4 +62,106 @@ test('addGithubStars fetches each repository once and shares its count', async (
 
   assert.deepEqual(requested, ['homebridge/analytics']);
   assert.deepEqual(plugins.map(plugin => plugin.githubStars), [456, 456]);
+});
+
+test('getNpmLastWeekDownloads batches unscoped packages and limits scoped requests', async () => {
+  const names = Array.from({ length: 130 }, (_, index) => `plugin-${index}`);
+  names.push('@scope/one', '@scope/two');
+  const requestedUrls = [];
+
+  const result = await getNpmLastWeekDownloads(names, new Map(), {
+    scopedRequestLimit: 1,
+    requestDelayMs: 0,
+    fetchFn: async url => {
+      requestedUrls.push(url);
+      const requestedNames = decodeURIComponent(url.split('/').at(-1)).split(',');
+      const data = Object.fromEntries(requestedNames.map(name => [name, { package: name, downloads: 10 }]));
+      return {
+        ok: true,
+        status: 200,
+        json: async () => requestedNames.length === 1 ? data[requestedNames[0]] : data,
+      };
+    },
+  });
+
+  assert.equal(requestedUrls.length, 3);
+  assert.equal(requestedUrls.filter(url => decodeURIComponent(url).includes('@scope/')).length, 1);
+  assert.equal(result.counts['plugin-129'], 10);
+  assert.equal(result.counts['@scope/one'], 10);
+  assert.equal(result.counts['@scope/two'], 0);
+});
+
+test('getNpmLastWeekDownloads retains cached counts and stops after a 429', async () => {
+  const oldTimestamp = '2020-01-01T00:00:00.000Z';
+  const previous = new Map([
+    ['@scope/one', { npmDownloads: 11, npmDownloadsUpdatedAt: oldTimestamp }],
+    ['@scope/two', { npmDownloads: 22, npmDownloadsUpdatedAt: oldTimestamp }],
+  ]);
+  let requestCount = 0;
+
+  const result = await getNpmLastWeekDownloads(['@scope/one', '@scope/two'], previous, {
+    maxRetries: 0,
+    requestDelayMs: 0,
+    fetchFn: async () => {
+      requestCount++;
+      return { ok: false, status: 429, statusText: 'Too Many Requests' };
+    },
+  });
+
+  assert.equal(requestCount, 1);
+  assert.equal(result.counts['@scope/one'], 11);
+  assert.equal(result.counts['@scope/two'], 22);
+  assert.equal(result.updatedAt['@scope/one'], oldTimestamp);
+});
+
+test('getReleaseDownloads retains cached counts after GitHub rate limiting', async () => {
+  const cached = { 'homebridge-example-1.0.0': 123 };
+  const result = await getReleaseDownloads(cached, {
+    fetchFn: async () => ({ ok: false, status: 403, statusText: 'rate limit exceeded' }),
+  });
+
+  assert.deepEqual(result, cached);
+});
+
+test('getHomebridgePlugins paginates until npm exhausts its results', async () => {
+  const pages = [
+    ['plugin-1', 'plugin-2'],
+    ['plugin-3', 'plugin-4'],
+    ['plugin-5'],
+  ];
+  let requestCount = 0;
+
+  const plugins = await getHomebridgePlugins({
+    resultsPerPage: 2,
+    requestDelayMs: 0,
+    fetchFn: async () => ({
+      ok: true,
+      json: async () => ({ objects: pages[requestCount++].map(name => ({ package: { name } })) }),
+    }),
+  });
+
+  assert.equal(requestCount, 3);
+  assert.deepEqual(plugins, ['plugin-1', 'plugin-2', 'plugin-3', 'plugin-4', 'plugin-5']);
+});
+
+test('getHomebridgePlugins supports an explicit local testing limit', async () => {
+  let requestCount = 0;
+  const plugins = await getHomebridgePlugins({
+    resultsPerPage: 2,
+    pluginLimit: 3,
+    requestDelayMs: 0,
+    fetchFn: async () => {
+      requestCount++;
+      return {
+        ok: true,
+        json: async () => ({ objects: [
+          { package: { name: `plugin-${requestCount * 2 - 1}` } },
+          { package: { name: `plugin-${requestCount * 2}` } },
+        ] }),
+      };
+    },
+  });
+
+  assert.equal(requestCount, 2);
+  assert.deepEqual(plugins, ['plugin-1', 'plugin-2', 'plugin-3']);
 });

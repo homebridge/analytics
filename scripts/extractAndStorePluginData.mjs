@@ -11,8 +11,10 @@ import { pathToFileURL } from 'url';
 
 console.log('This only runs for a few minutes, so no time to grab some coffee...');
 
-// Set limit to 100 plugins for testing extraction, and 5000 for final extraction
-const TESTING_LIMIT = 5000; // Adjust the limit for final run
+const configuredPluginLimit = Number(process.env.PLUGIN_LIMIT);
+const PLUGIN_LIMIT = Number.isInteger(configuredPluginLimit) && configuredPluginLimit > 0
+  ? configuredPluginLimit
+  : Infinity;
 
 // Limit concurrent fetches to 10 at a time
 const limit = pLimit(10);
@@ -21,6 +23,9 @@ const GITHUB_STAR_REFRESH_DAYS = Number(process.env.GITHUB_STAR_REFRESH_DAYS || 
 const GITHUB_STAR_REQUEST_LIMIT = Number(process.env.GITHUB_STAR_REQUEST_LIMIT || 4000);
 const GITHUB_STAR_CONCURRENCY = Number(process.env.GITHUB_STAR_CONCURRENCY || 5);
 const githubLimit = pLimit(GITHUB_STAR_CONCURRENCY);
+const NPM_SCOPED_DOWNLOAD_REQUEST_LIMIT = Number(process.env.NPM_SCOPED_DOWNLOAD_REQUEST_LIMIT || 100);
+const NPM_DOWNLOAD_REFRESH_DAYS = Number(process.env.NPM_DOWNLOAD_REFRESH_DAYS || 7);
+const NPM_DOWNLOAD_REQUEST_DELAY_MS = Number(process.env.NPM_DOWNLOAD_REQUEST_DELAY_MS || 1000);
 
 export function extractGithubRepo(repository) {
   const repositoryUrl = typeof repository === 'string' ? repository : repository?.url;
@@ -64,9 +69,22 @@ function readPreviousPluginData() {
   }
 }
 
+function readPreviousGithubDownloads() {
+  try {
+    return JSON.parse(fs.readFileSync('../githubDownload.json', 'utf8'));
+  } catch (error) {
+    console.warn(`Could not load existing GitHub download cache: ${error.message}`);
+    return {};
+  }
+}
+
 function isFresh(dateString) {
+  return isTimestampFresh(dateString, GITHUB_STAR_REFRESH_DAYS);
+}
+
+function isTimestampFresh(dateString, maxAgeDays) {
   const timestamp = Date.parse(dateString);
-  return Number.isFinite(timestamp) && Date.now() - timestamp < GITHUB_STAR_REFRESH_DAYS * 24 * 60 * 60 * 1000;
+  return Number.isFinite(timestamp) && Date.now() - timestamp < maxAgeDays * 24 * 60 * 60 * 1000;
 }
 
 async function fetchGithubStars(repo) {
@@ -143,8 +161,12 @@ export async function addGithubStars(plugins, previousPlugins = new Map(), optio
 }
 
 // Fetch list of homebridge plugins with pagination
-async function getHomebridgePlugins() {
-  const resultsPerPage = 250;
+export async function getHomebridgePlugins(options = {}) {
+  const resultsPerPage = options.resultsPerPage || 250;
+  const pluginLimit = options.pluginLimit ?? PLUGIN_LIMIT;
+  const fetchFn = options.fetchFn || fetch;
+  const sleepFn = options.sleepFn || sleep;
+  const requestDelayMs = options.requestDelayMs ?? 1000;
   let allData = [];
   let page = 0;
   let keepFetching = true;
@@ -153,7 +175,7 @@ async function getHomebridgePlugins() {
     while (keepFetching) {
       console.log(`Fetching page ${page + 1}...`);
       const url = `https://registry.npmjs.org/-/v1/search?text=keywords:homebridge-plugin&size=${resultsPerPage}&from=${page * resultsPerPage}`;
-      const response = await fetch(url);
+      const response = await fetchFn(url);
       if (response.ok) {
         const data = await response.json();
 
@@ -161,19 +183,20 @@ async function getHomebridgePlugins() {
         allData = allData.concat(data.objects);
 
         // Stop fetching if less than a full page of results is returned or the limit is reached
-        if (data.objects.length < resultsPerPage || allData.length >= TESTING_LIMIT) {
+        if (data.objects.length < resultsPerPage || allData.length >= pluginLimit) {
           keepFetching = false;
         } else {
           page++;
         }
-        await sleep(1000); // Sleep for 1 second to avoid rate limiting
+        if (requestDelayMs > 0) await sleepFn(requestDelayMs);
       } else {
         throw new Error(`Error fetching page ${page + 1}: ${response.status} ${response.statusText}`);
       }
     }
 
     console.log(`Fetched data for ${allData.length} plugins`);
-    return allData.slice(0, TESTING_LIMIT).map(pkg => pkg.package.name);
+    const plugins = Number.isFinite(pluginLimit) ? allData.slice(0, pluginLimit) : allData;
+    return plugins.map(pkg => pkg.package.name);
 
   } catch (error) {
     console.error('Error fetching plugin list from npm:', error);
@@ -202,9 +225,16 @@ const owner = 'homebridge';
 const repo = 'verified';
 const apiUrl = `https://api.github.com/repos/${owner}/${repo}/releases`;
 
-async function getReleaseDownloads() {
+export async function getReleaseDownloads(previousDownloads = {}, options = {}) {
+  const fetchFn = options.fetchFn || fetch;
   try {
-    const response = await fetch(apiUrl);
+    const response = await fetchFn(apiUrl, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(process.env.GITHUB_TOKEN && { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }),
+      },
+    });
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
@@ -227,61 +257,90 @@ async function getReleaseDownloads() {
 
   } catch (error) {
     console.error(`Error fetching release data: ${error.message}`);
-    return {};
+    console.warn(`Using ${Object.keys(previousDownloads).length} cached GitHub release download counts`);
+    return previousDownloads;
   }
 }
-async function getNpmLastWeekDownloads(pluginNames) {
+export async function getNpmLastWeekDownloads(pluginNames, previousPlugins = new Map(), options = {}) {
   // https://github.com/npm/registry/blob/main/docs/download-counts.md#bulk-queries
   const BULK_LIMIT = 128;
-  // This process will batch requests together to reduce the number of requests, but will strive to preserve the order of the search results as much as possible.
-  const queries = [];
-  const bulk = [];
-  const namespaced = [];
-  for (let pluginName of pluginNames) {
-    if (pluginName.startsWith('@')) {
-      namespaced.push(pluginName);
-    } else {
-      bulk.push(pluginName);
-      if (BULK_LIMIT <= bulk.length) {
-        queries.push(bulk.join(','));
-        bulk.length = 0;
-      }
-    }
-    if (bulk.length === 0) {
-      queries.push(...namespaced);
-      namespaced.length = 0;
-    }
-  }
-  if (bulk.length != 0) {
-    queries.push(bulk.join(','));
-    queries.push(...namespaced);
+  const fetchFn = options.fetchFn || fetch;
+  const sleepFn = options.sleepFn || sleep;
+  const requestDelayMs = options.requestDelayMs ?? NPM_DOWNLOAD_REQUEST_DELAY_MS;
+  const scopedRequestLimit = options.scopedRequestLimit ?? NPM_SCOPED_DOWNLOAD_REQUEST_LIMIT;
+  const maxRetries = options.maxRetries ?? 2;
+  const now = options.now || new Date().toISOString();
+  const counts = {};
+  const updatedAt = {};
+
+  for (const pluginName of pluginNames) {
+    const previous = previousPlugins.get(pluginName);
+    counts[pluginName] = Number.isInteger(previous?.npmDownloads) ? previous.npmDownloads : 0;
+    updatedAt[pluginName] = previous?.npmDownloadsUpdatedAt || null;
   }
 
-  // Key: pluginName, Value: Last-Week DL count
-  const packageDLCountMap = {};
-  for (const q of queries) {
-    const url = `https://api.npmjs.org/downloads/point/last-week/${q}`;
+  const unscoped = pluginNames.filter(name => !name.startsWith('@'));
+  const scoped = pluginNames.filter(name => name.startsWith('@'));
+  const queries = [];
+  for (let index = 0; index < unscoped.length; index += BULK_LIMIT) {
+    queries.push(unscoped.slice(index, index + BULK_LIMIT));
+  }
+
+  const staleScoped = scoped.filter(name => !isTimestampFresh(updatedAt[name], NPM_DOWNLOAD_REFRESH_DAYS));
+  for (const name of staleScoped.slice(0, Math.max(0, scopedRequestLimit))) queries.push([name]);
+
+  let requestCount = 0;
+  let refreshedCount = 0;
+  let throttled = false;
+  for (const names of queries) {
+    const path = names.map(encodeURIComponent).join(',');
+    const url = `https://api.npmjs.org/downloads/point/last-week/${path}`;
     try {
-      const res = await fetch(url);
+      let res;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        res = await fetchFn(url);
+        requestCount++;
+        if (res.ok || ![429, 500, 502, 503, 504].includes(res.status) || attempt === maxRetries) break;
+
+        const retryAfterHeader = res.headers?.get?.('retry-after');
+        const retryAfter = retryAfterHeader === null || retryAfterHeader === undefined ? NaN : Number(retryAfterHeader);
+        const retryDelay = Number.isFinite(retryAfter) ? retryAfter * 1000 : 2000 * (2 ** attempt);
+        console.warn(`npm downloads request returned ${res.status}; retrying in ${retryDelay}ms`);
+        await sleepFn(retryDelay);
+      }
+
       if (res.ok) {
         const data = await res.json();
-        if (q.startsWith('@')) {
-          packageDLCountMap[data.package] = data.downloads;
+        if (names.length === 1) {
+          if (Number.isInteger(data.downloads)) {
+            counts[names[0]] = data.downloads;
+            updatedAt[names[0]] = now;
+            refreshedCount++;
+          }
         } else {
-          Object.values(data).forEach(item => packageDLCountMap[item.package] = item.downloads);
+          for (const name of names) {
+            if (Number.isInteger(data[name]?.downloads)) {
+              counts[name] = data[name].downloads;
+              updatedAt[name] = now;
+              refreshedCount++;
+            }
+          }
         }
       } else {
-        console.error(`Error fetching npm last-week download for ${q}: ${res.status} ${res.statusText}`);
-        q.split(',').forEach(item => packageDLCountMap[item] = 0);
+        console.error(`Error fetching npm last-week downloads for ${names.join(',')}: ${res.status} ${res.statusText}`);
+        if (res.status === 429) {
+          throttled = true;
+          break;
+        }
       }
     } catch (err) {
-      console.error(`Error fetching npm last-week download for ${q}: ${err.message}`);
-      q.split(',').forEach(item => packageDLCountMap[item] = 0);
+      console.error(`Error fetching npm last-week downloads for ${names.join(',')}: ${err.message}`);
     }
-    await sleep(1000); // Sleep for 1 second to avoid rate limiting
+    if (requestDelayMs > 0) await sleepFn(requestDelayMs);
   }
-  console.log(`request count:${queries.length}, package count:${Object.keys(packageDLCountMap).length}`);
-  return packageDLCountMap;
+
+  console.log(`npm downloads: ${requestCount} requests, ${refreshedCount}/${pluginNames.length} refreshed, ${staleScoped.length} scoped packages stale${throttled ? ', stopped after rate limiting' : ''}`);
+  return { counts, updatedAt };
 }
 
 function isHomebridge2Ready(plugin) {
@@ -290,7 +349,7 @@ function isHomebridge2Ready(plugin) {
 }
 
 // Fetch the full package metadata and download stats
-async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads, npmLastWeekDownloads) {
+async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads, npmDownloadData) {
   console.log(`Fetching package details data for ${packageName}...`);
   const url = `https://registry.npmjs.org/${packageName}`;
 
@@ -318,7 +377,8 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
     const deprecated = versionData.deprecated || false;
     const displayName = versionData.displayName || packageName;
     const owner = (author === 'Not supplied') ? maintainers.join(', ') : author;
-    const npmDownloads = npmLastWeekDownloads[packageName] || 0;
+    const npmDownloads = npmDownloadData.counts[packageName] || 0;
+    const npmDownloadsUpdatedAt = npmDownloadData.updatedAt[packageName] || null;
     const homebridge2ready = isHomebridge2Ready(versionData);
     const repository = versionData.repository || data.repository || null;
 
@@ -346,6 +406,7 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
       downloads: totalDownloads, // Sum npm and GitHub downloads
       verified,  // Include verified status
       npmDownloads,
+      npmDownloadsUpdatedAt,
       githubDownloads: githubDownloadCount, // Track GitHub downloads separately
       homebridge2ready,
       repository,
@@ -362,14 +423,14 @@ async function extractAndStoreData() {
   const allPluginNames = await getHomebridgePlugins();
   fs.writeFileSync('../allPluginNames.json', JSON.stringify(allPluginNames, null, 2));
   const verifiedPlugins = await getVerifiedPlugins();
-  const githubDownloads = await getReleaseDownloads();
-  const npmLastWeekDownloads = await getNpmLastWeekDownloads(allPluginNames);
+  const githubDownloads = await getReleaseDownloads(readPreviousGithubDownloads());
+  const npmDownloadData = await getNpmLastWeekDownloads(allPluginNames, previousPlugins);
 
   fs.writeFileSync('../githubDownload.json', JSON.stringify(githubDownloads, null, 2));
   // Limit concurrent requests with pLimit
   const pluginsWithDetails = await Promise.all(
     allPluginNames.map(packageName =>
-      limit(() => fetchPackageDetails(packageName, verifiedPlugins, githubDownloads, npmLastWeekDownloads))
+      limit(() => fetchPackageDetails(packageName, verifiedPlugins, githubDownloads, npmDownloadData))
     )
   );
   await addGithubStars(pluginsWithDetails, previousPlugins);
