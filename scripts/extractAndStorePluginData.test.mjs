@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { addGithubStars, extractGithubRepo, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads } from './extractAndStorePluginData.mjs';
+import { getPluginTransport } from '../vue-data-analyzer/src/pluginTransports.js';
 
 test('extractGithubRepo supports common npm repository formats', () => {
   const expected = {
@@ -164,4 +165,17 @@ test('getHomebridgePlugins supports an explicit local testing limit', async () =
 
   assert.equal(requestCount, 2);
   assert.deepEqual(plugins, ['plugin-1', 'plugin-2', 'plugin-3']);
+});
+
+test('getPluginTransport applies transport keyword declarations', () => {
+  assert.equal(getPluginTransport({ keywords: [] }), 'HAP');
+  assert.equal(getPluginTransport({}), 'HAP');
+  assert.equal(getPluginTransport({ keywords: ['homebridge-plugin', 'supports-hap'] }), 'HAP');
+  assert.equal(getPluginTransport({ keywords: ['homebridge-plugin', 'supports-matter'] }), 'Matter');
+  assert.equal(getPluginTransport({ keywords: ['supports-hap', 'supports-matter'] }), 'HAP + Matter');
+});
+
+test('getPluginTransport normalizes string and mixed-case keywords', () => {
+  assert.equal(getPluginTransport({ keywords: 'homebridge-plugin, supports-matter' }), 'Matter');
+  assert.equal(getPluginTransport({ keywords: ['SUPPORTS-HAP', 'Supports-Matter'] }), 'HAP + Matter');
 });
