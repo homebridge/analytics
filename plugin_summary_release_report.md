@@ -1,8 +1,8 @@
-# Plugin Summary Report (Based on Latest Release) - Wed Sep 02 2026
+# Plugin Summary Report (Based on Latest Release) - Thu Sep 03 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Tue Sep 02 2025 - Wed Sep 02 2026
+- Latest Release within 12 months: Wed Sep 03 2025 - Thu Sep 03 2026
 - Homebridge 2 Ready: Supported
 
 **Total Plugins Homebridge 2 Ready:** 389<br>
@@ -18,19 +18,19 @@
 | homebridge-davis-2 | Brendan Keyport | 2026-07-29T23:41:38.907Z | 27 | true | Not ready |
 | homebridge-egreat-androidtv | Carlos Gamez | 2026-05-10T02:38:49.285Z | 10 | true | Not ready |
 | homebridge-eltako-minisafe2 | awaescher | 2026-08-04T09:44:37.389Z | 24 | true | Not ready |
-| homebridge-google-nest-sdm | potmat | 2026-07-22T19:40:02.369Z | 839 | true | Not ready |
+| homebridge-google-nest-sdm | potmat | 2026-07-22T19:40:02.369Z | 846 | true | Not ready |
 | homebridge-heurespleines-heurescreuses | Christophe Bansart | 2025-12-05T17:40:16.542Z | 18 | true | Not ready |
-| homebridge-kasa-hub | zmx264 | 2025-11-05T19:58:07.553Z | 893 | true | Not ready |
+| homebridge-kasa-hub | zmx264 | 2025-11-05T19:58:07.553Z | 895 | true | Not ready |
 | homebridge-lennox | Luke Alonso | 2025-12-21T05:51:34.895Z | 32 | true | Not ready |
 | homebridge-lennox-icomfort-cloud | Luke Zbihlyj | 2026-06-15T19:04:33.436Z | 43 | true | Not ready |
-| homebridge-lg-thinqconnect-ac | cosmo84 | 2026-08-10T19:41:53.686Z | 142 | true | Not ready |
-| homebridge-lifx-plugin | calvarium | 2026-03-01T21:43:26.088Z | 649 | true | Not ready |
+| homebridge-lg-thinqconnect-ac | cosmo84 | 2026-08-10T19:41:53.686Z | 146 | true | Not ready |
+| homebridge-lifx-plugin | calvarium | 2026-03-01T21:43:26.088Z | 655 | true | Not ready |
 | homebridge-luftdaten | Rafał Rudecki | 2026-06-28T13:35:26.708Z | 14 | true | Not ready |
 | homebridge-mi-hygrothermograph-hb2 | Nicolas Lehmann | 2026-07-18T19:23:02.131Z | 70 | true | Not ready |
 | homebridge-moodo | Vladislav Landa | 2026-05-08T06:51:23.894Z | 32 | true | Not ready |
 | homebridge-myplaceiq | Ben Burt | 2026-07-28T02:02:03.315Z | 18 | true | Not ready |
 | homebridge-nanit-pro | GhostOnyx | 2026-06-06T07:50:07.399Z | 103 | true | Not ready |
-| homebridge-netatmo-home-control | barichon21000 | 2026-07-15T18:41:36.881Z | 52 | true | Not ready |
+| homebridge-netatmo-home-control | barichon21000 | 2026-07-15T18:41:36.881Z | 53 | true | Not ready |
 | homebridge-nuvo | Will MacCormack | 2026-05-11T21:12:23.051Z | 18 | true | Not ready |
 | homebridge-openclaw | davidevp | 2026-02-20T04:34:41.560Z | 38 | true | Not ready |
 | homebridge-openrgb | Dallas Hoffman | 2025-12-04T04:37:52.216Z | 70 | true | Not ready |
@@ -47,6 +47,6 @@
 | homebridge-sonos-alert | lsapan | 2026-01-08T05:43:48.318Z | 56 | true | Not ready |
 | homebridge-sonos-multiroom | lukas.roegner | 2026-05-08T07:11:03.543Z | 94 | true | Not ready |
 | homebridge-tempo | Christophe Bansart | 2026-01-05T09:45:35.636Z | 108 | true | Not ready |
-| homebridge-trane-nexia | drewan50 | 2026-07-04T15:15:58.544Z | 36 | true | Not ready |
+| homebridge-trane-nexia | drewan50 | 2026-07-04T15:15:58.544Z | 37 | true | Not ready |
 | homebridge-verisure | ptz0n | 2026-02-10T08:07:58.751Z | 182 | true | Not ready |
 | homebridge-volvo-xc90 | Codzelerate | 2026-06-08T18:54:02.705Z | 19 | true | Not ready |
