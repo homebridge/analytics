@@ -31,13 +31,13 @@
       <label :class="{ 'active-filter': filters.owner }">Owner: 
         <input v-model="filters.owner" placeholder="Filter by owner" />
       </label>
-      <label :class="{ 'active-filter': filters.downloads }">Downloads: 
+      <label :class="{ 'active-filter': filters.downloads !== '' }">npm Downloads — Last Week:
         <select v-model="downloadsComparison">
           <option value="equal">=</option>
           <option value="greater">></option>
           <option value="less">&lt;</option>
         </select>
-        <input v-model.number="filters.downloads" type="number" min="0" step="1" placeholder="Filter by downloads" />
+        <input v-model.number="filters.downloads" type="number" min="0" step="1" placeholder="Filter weekly downloads" />
       </label>
       <label :class="{ 'active-filter': filters.githubStars !== '' }">GitHub Stars:
         <select v-model="githubStarsComparison">
@@ -103,7 +103,7 @@
       <table>
         <thead>
           <tr>
-            <th v-for="column in columns" :key="column.key" :class="getHeaderClass(column.key)" :aria-sort="getAriaSort(column.key)" tabindex="0" @click="sortTable(column.key)" @keydown.enter.prevent="sortTable(column.key)" @keydown.space.prevent="sortTable(column.key)">{{ column.label }}</th>
+            <th v-for="column in columns" :key="column.key" :class="getHeaderClass(column.key)" :aria-sort="getAriaSort(column.key)" :title="column.title || column.label" tabindex="0" @click="sortTable(column.key)" @keydown.enter.prevent="sortTable(column.key)" @keydown.space.prevent="sortTable(column.key)">{{ column.label }}</th>
           </tr>
         </thead>
         <tbody>
@@ -112,7 +112,7 @@
             <td class="description-cell">{{ plugin.description }}</td>
             <td><span class="version-tag">{{ plugin.version }}</span></td>
             <td>{{ plugin.owner }}</td>
-            <td class="numeric-cell">{{ formatNumber(plugin.downloads) }}</td>
+            <td class="numeric-cell">{{ formatNumber(getWeeklyNpmDownloads(plugin)) }}</td>
             <td class="numeric-cell">
               <a v-if="plugin.githubRepo" :href="plugin.githubRepo" target="_blank" rel="noopener noreferrer">
                 {{ Number.isInteger(plugin.githubStars) ? formatNumber(plugin.githubStars) : 'N/A' }}
@@ -143,6 +143,7 @@
 <script>
 import {
   compareStarDataQuality,
+  getWeeklyNpmDownloads,
   hasPotentialGithubMismatch,
   matchesNumericFilter,
   matchesStarDataQualityFilter,
@@ -184,8 +185,8 @@ export default {
         { key: 'description', label: 'Description' },
         { key: 'version', label: 'Version' },
         { key: 'owner', label: 'Owner' },
-        { key: 'downloads', label: 'Downloads' },
-        { key: 'githubStars', label: 'GitHub Stars' },
+        { key: 'downloads', label: 'npm / week', title: 'npm Downloads — Last Week' },
+        { key: 'githubStars', label: 'Stars', title: 'GitHub Stars' },
         { key: 'created', label: 'Created' },
         { key: 'lastUpdated', label: 'Last Updated' },
         { key: 'homebridge2Compatibility', label: 'Homebridge 2.0 Ready' },
@@ -198,7 +199,7 @@ export default {
     filteredPlugins() {
       return this.plugins.filter(plugin => {
         const downloadsCondition = matchesNumericFilter(
-          plugin.downloads,
+          getWeeklyNpmDownloads(plugin),
           this.filters.downloads,
           this.downloadsComparison
         );
@@ -294,7 +295,7 @@ export default {
     getSortValue(plugin) {
       switch (this.sortKey) {
         case 'downloads':
-          return plugin.downloads;
+          return getWeeklyNpmDownloads(plugin);
         case 'githubStars':
           return Number.isInteger(plugin.githubStars) ? plugin.githubStars : -1;
         case 'created':
@@ -317,6 +318,7 @@ export default {
     },
     getPluginTransport,
     hasPotentialGithubMismatch,
+    getWeeklyNpmDownloads,
     formatNumber(value) {
       return Number.isFinite(value) ? value.toLocaleString() : 'N/A';
     },

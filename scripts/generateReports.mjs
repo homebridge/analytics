@@ -8,6 +8,10 @@ function isHomebridge2Ready(plugin) {
   return hbEngines.some((x) => (x.startsWith('^2') || x.startsWith('>=2'))) ? 'Supported' : 'Not ready';
 }
 
+function getWeeklyNpmDownloads(plugin) {
+  return Number.isInteger(plugin.npmDownloads) ? plugin.npmDownloads : plugin.downloads;
+}
+
 // Function to generate a markdown report based on latest release date
 function generateReleaseDateReport(data) {
   const currentDate = new Date();
@@ -45,13 +49,13 @@ function generateReleaseDateReport(data) {
   markdownContent += `**Filters Applied:**\n- Verified: true\n- Latest Release within 12 months: ${twelveMonthsAgo.toDateString()} - ${currentDate.toDateString()}\n- Homebridge 2 Ready: Supported\n\n`;
   markdownContent += `**Total Plugins Homebridge 2 Ready:** ${hb2ReadyCount}<br>\n`;
   markdownContent += `**Total Plugins Not Homebridge 2 Ready:** ${hb2NotReadyCount}\n\n`;
-  markdownContent += '| Name | Owner | Latest Release | Downloads | Verified | Homebridge 2 Status |\n';
+  markdownContent += '| Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |\n';
   markdownContent += '| ---- | ----- | -------------- | --------- | -------- | ------------------- |\n';
 
   // Add the sorted and filtered plugin data to the table
   filteredPlugins.forEach(plugin => {
     const hb2Status = isHomebridge2Ready(plugin); // Recompute status to show in the table
-    markdownContent += `| ${plugin.name} | ${plugin.owner} | ${plugin.latestRelease} | ${plugin.downloads} | ${plugin.verified} | ${hb2Status} |\n`;
+    markdownContent += `| ${plugin.name} | ${plugin.owner} | ${plugin.latestRelease} | ${getWeeklyNpmDownloads(plugin)} | ${plugin.verified} | ${hb2Status} |\n`;
   });
 
   // Save the markdown content to a file
@@ -70,7 +74,7 @@ function generateDownloadsReport(data) {
   const filteredPlugins = data.filter(plugin => {
     const hb2Status = isHomebridge2Ready(plugin); // Get Homebridge 2 readiness status
 
-    if (!plugin.verified || plugin.downloads <= 20) {
+    if (!plugin.verified || getWeeklyNpmDownloads(plugin) <= 20) {
       return false;
     }
 
@@ -82,24 +86,24 @@ function generateDownloadsReport(data) {
     }
 
     // Only return plugins that have more than 20 downloads and are Homebridge 2 ready
-    return plugin.downloads > 20 && hb2Status === 'Not ready';
+    return getWeeklyNpmDownloads(plugin) > 20 && hb2Status === 'Not ready';
   });
 
   // Sort the filtered plugins by name
   filteredPlugins.sort((a, b) => a.name.localeCompare(b.name));
 
   // Create the markdown content for downloads report
-  let markdownContent = `# Plugin Summary Report (Based on Downloads) - ${currentDate.toDateString()}\n\n`;
-  markdownContent += `**Filters Applied:**\n- Verified: true\n- Downloads > 20\n- Homebridge 2 Ready: Supported\n\n`;
+  let markdownContent = `# Plugin Summary Report (Based on npm Downloads Last Week) - ${currentDate.toDateString()}\n\n`;
+  markdownContent += `**Filters Applied:**\n- Verified: true\n- npm Downloads (Last Week) > 20\n- Homebridge 2 Ready: Supported\n\n`;
   markdownContent += `**Total Plugins Homebridge 2 Ready:** ${hb2ReadyCount}<br>\n`;
   markdownContent += `**Total Plugins Not Homebridge 2 Ready:** ${hb2NotReadyCount}\n\n`;
-  markdownContent += '| Name | Owner | Latest Release | Downloads | Verified | Homebridge 2 Status |\n';
+  markdownContent += '| Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |\n';
   markdownContent += '| ---- | ----- | -------------- | --------- | -------- | ------------------- |\n';
 
   // Add the sorted and filtered plugin data to the table
   filteredPlugins.forEach(plugin => {
     const hb2Status = isHomebridge2Ready(plugin); // Recompute status to show in the table
-    markdownContent += `| ${plugin.name} | ${plugin.owner} | ${plugin.latestRelease} | ${plugin.downloads} | ${plugin.verified} | ${hb2Status} |\n`;
+    markdownContent += `| ${plugin.name} | ${plugin.owner} | ${plugin.latestRelease} | ${getWeeklyNpmDownloads(plugin)} | ${plugin.verified} | ${hb2Status} |\n`;
   });
 
   // Save the markdown content to a file

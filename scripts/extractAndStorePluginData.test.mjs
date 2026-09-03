@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addGithubStars, extractGithubRepo, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, resolveRepository } from './extractAndStorePluginData.mjs';
+import { addGithubStars, extractGithubRepo, getDownloadMetrics, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, resolveRepository } from './extractAndStorePluginData.mjs';
 import { getPluginTransport } from '../vue-data-analyzer/src/pluginTransports.js';
 
 test('extractGithubRepo supports common npm repository formats', () => {
@@ -129,6 +129,28 @@ test('getNpmLastWeekDownloads retains cached counts and stops after a 429', asyn
   assert.equal(result.counts['@scope/one'], 11);
   assert.equal(result.counts['@scope/two'], 22);
   assert.equal(result.updatedAt['@scope/one'], oldTimestamp);
+});
+
+test('getNpmLastWeekDownloads records the npm reporting window', async () => {
+  const result = await getNpmLastWeekDownloads(['plugin-one'], new Map(), {
+    requestDelayMs: 0,
+    fetchFn: async () => ({
+      ok: true,
+      json: async () => ({ downloads: 95, start: '2026-08-23', end: '2026-08-29' }),
+    }),
+  });
+
+  assert.equal(result.counts['plugin-one'], 95);
+  assert.equal(result.starts['plugin-one'], '2026-08-23');
+  assert.equal(result.ends['plugin-one'], '2026-08-29');
+});
+
+test('getDownloadMetrics keeps weekly npm and lifetime GitHub downloads separate', () => {
+  assert.deepEqual(getDownloadMetrics(95, 12067), {
+    downloads: 95,
+    npmDownloads: 95,
+    githubDownloads: 12067,
+  });
 });
 
 test('getReleaseDownloads retains cached counts after GitHub rate limiting', async () => {

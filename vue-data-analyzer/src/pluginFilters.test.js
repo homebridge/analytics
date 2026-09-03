@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   hasPotentialGithubMismatch,
   compareStarDataQuality,
+  getWeeklyNpmDownloads,
   matchesNumericFilter,
   matchesStarDataQualityFilter,
   matchesTransportFilter,
@@ -14,6 +15,11 @@ test('matchesNumericFilter supports equal, greater, and less comparisons', () =>
   assert.equal(matchesNumericFilter(9, 10, 'less'), true);
   assert.equal(matchesNumericFilter(10, '', 'equal'), true);
   assert.equal(matchesNumericFilter(null, 10, 'equal'), false);
+});
+
+test('getWeeklyNpmDownloads prefers the uncombined npm metric', () => {
+  assert.equal(getWeeklyNpmDownloads({ downloads: 12162, npmDownloads: 95, githubDownloads: 12067 }), 95);
+  assert.equal(getWeeklyNpmDownloads({ downloads: 42 }), 42);
 });
 
 test('matchesTransportFilter distinguishes HAP, Matter, and both', () => {

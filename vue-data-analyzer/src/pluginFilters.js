@@ -9,6 +9,10 @@ export function matchesNumericFilter(value, filterValue, comparison) {
   return value === filterValue;
 }
 
+export function getWeeklyNpmDownloads(plugin) {
+  return Number.isInteger(plugin?.npmDownloads) ? plugin.npmDownloads : plugin?.downloads;
+}
+
 export function matchesTransportFilter(plugin, transport) {
   return transport === '' || getPluginTransport(plugin) === transport;
 }
