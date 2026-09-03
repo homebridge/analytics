@@ -1,0 +1,62 @@
+name: Publish Vue Application
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-vue-application
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Source
+        uses: actions/checkout@v7
+        with:
+          ref: Source
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: vue-data-analyzer/package-lock.json
+
+      - name: Install dependencies
+        working-directory: vue-data-analyzer
+        run: npm ci
+
+      - name: Test application
+        working-directory: vue-data-analyzer
+        run: npm test
+
+      - name: Build application
+        working-directory: vue-data-analyzer
+        run: npm run build
+
+      - name: Stage build output
+        run: |
+          mkdir -p "${RUNNER_TEMP}/vue-dist"
+          cp -R vue-data-analyzer/dist/. "${RUNNER_TEMP}/vue-dist/"
+
+      - name: Publish to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout gh-pages
+          rm -rf docs/assets
+          cp -R "${RUNNER_TEMP}/vue-dist/." docs/
+          git add docs
+
+          if git diff --cached --quiet; then
+            echo "The published application is already current."
+            exit 0
+          fi
+
+          git commit -m "Publish Vue application"
+          git push origin gh-pages
