@@ -46,7 +46,7 @@ export default {
         this.plugins = await response.json();
       } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
-        this.error = 'Check the server’s internet connection and try again.';
+this.error = 'Check your connection and try again later.';
       } finally {
         this.loading = false;
       }
