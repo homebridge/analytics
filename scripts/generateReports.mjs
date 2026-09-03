@@ -46,7 +46,7 @@ function generateReleaseDateReport(data) {
 
   // Create the markdown content for release date report
   let markdownContent = `# Plugin Summary Report (Based on Latest Release) - ${currentDate.toDateString()}\n\n`;
-  markdownContent += `**Filters Applied:**\n- Verified: true\n- Latest Release within 12 months: ${twelveMonthsAgo.toDateString()} - ${currentDate.toDateString()}\n- Homebridge 2 Ready: Supported\n\n`;
+  markdownContent += `**Filters Applied:**\n- Verified: true\n- Latest Release within 12 months: ${twelveMonthsAgo.toDateString()} - ${currentDate.toDateString()}\n- Homebridge 2 Ready: Not ready\n\n`;
   markdownContent += `**Total Plugins Homebridge 2 Ready:** ${hb2ReadyCount}<br>\n`;
   markdownContent += `**Total Plugins Not Homebridge 2 Ready:** ${hb2NotReadyCount}\n\n`;
   markdownContent += '| Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |\n';

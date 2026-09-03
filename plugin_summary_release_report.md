@@ -1,9 +1,9 @@
-# Plugin Summary Report (Based on Latest Release) - Wed Sep 02 2026
+# Plugin Summary Report (Based on Latest Release) - Thu Sep 03 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Tue Sep 02 2025 - Wed Sep 02 2026
-- Homebridge 2 Ready: Supported
+- Latest Release within 12 months: Wed Sep 03 2025 - Thu Sep 03 2026
+- Homebridge 2 Ready: Not ready
 
 **Total Plugins Homebridge 2 Ready:** 389<br>
 **Total Plugins Not Homebridge 2 Ready:** 40
