@@ -226,7 +226,8 @@ tbody tr:hover td { background: #f8fbff; }
     --border-strong: #435064;
     --text: #e7ebf1;
     --muted: #9ba7b7;
-    --accent: #79a5ff;
+--accent: #79a5ff;
+    --warning: #fbbf24;
     --accent-soft: #22365a;
     --positive: #6fd6a7;
     --positive-soft: #193c31;
