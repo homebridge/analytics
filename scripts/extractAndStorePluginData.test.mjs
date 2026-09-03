@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addGithubStars, extractGithubRepo, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads } from './extractAndStorePluginData.mjs';
+import { addGithubStars, extractGithubRepo, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, resolveRepository } from './extractAndStorePluginData.mjs';
 import { getPluginTransport } from '../vue-data-analyzer/src/pluginTransports.js';
 
 test('extractGithubRepo supports common npm repository formats', () => {
@@ -24,6 +24,22 @@ test('extractGithubRepo rejects unsupported and malformed repositories', () => {
   assert.equal(extractGithubRepo('https://gitlab.com/homebridge/analytics'), null);
   assert.equal(extractGithubRepo('not a repository'), null);
   assert.equal(extractGithubRepo('https://example.com/github.com/homebridge/analytics'), null);
+});
+
+test('resolveRepository replaces the npm CLI placeholder with a GitHub homepage', () => {
+  assert.equal(
+    resolveRepository(
+      { type: 'git', url: 'git+https://github.com/npm/cli.git' },
+      'https://github.com/Kwintenvdb/homebridge-vesync-client'
+    ),
+    'https://github.com/Kwintenvdb/homebridge-vesync-client'
+  );
+});
+
+test('resolveRepository preserves a valid published repository', () => {
+  const repository = { type: 'git', url: 'git+https://github.com/homebridge/analytics.git' };
+  assert.equal(resolveRepository(repository, 'https://github.com/another/project'), repository);
+  assert.equal(resolveRepository(null, 'https://github.com/homebridge/analytics#readme'), 'https://github.com/homebridge/analytics');
 });
 
 test('addGithubStars reuses a fresh cached count for duplicate repositories', async () => {

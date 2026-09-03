@@ -63,6 +63,19 @@ export function extractGithubRepo(repository) {
   }
 }
 
+export function resolveRepository(repository, homepage) {
+  const repositoryRepo = extractGithubRepo(repository);
+  const homepageRepo = extractGithubRepo(homepage);
+
+  // Some packages created with an old npm template accidentally publish npm/cli
+  // as their repository while still providing their real project as homepage.
+  if (repositoryRepo?.key === 'npm/cli' && homepageRepo?.key !== 'npm/cli') {
+    return homepageRepo?.url || repository;
+  }
+
+  return repositoryRepo ? repository : (homepageRepo?.url || repository || null);
+}
+
 function readPreviousPluginData() {
   try {
     const previousData = JSON.parse(fs.readFileSync('../homebridge_plugins.json', 'utf8'));
@@ -413,7 +426,10 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
     const npmDownloads = npmDownloadData.counts[packageName] || 0;
     const npmDownloadsUpdatedAt = npmDownloadData.updatedAt[packageName] || null;
     const homebridge2ready = isHomebridge2Ready(versionData);
-    const repository = versionData.repository || data.repository || null;
+    const repository = resolveRepository(
+      versionData.repository || data.repository || null,
+      versionData.homepage || data.homepage || null
+    );
 
     // Check if the plugin is verified
     const verified = verifiedPlugins.includes(packageName);

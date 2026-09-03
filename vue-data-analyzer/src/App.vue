@@ -1,7 +1,17 @@
 <template>
-  <div>
-    <DataTable :plugins="plugins" @select-plugin="showPluginDetails" />
-  </div>
+  <main>
+    <div v-if="loading" class="app-state" role="status" aria-live="polite">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <strong>Loading plugin analytics…</strong>
+      <span>Fetching the latest Homebridge plugin data.</span>
+    </div>
+    <div v-else-if="error" class="app-state app-error" role="alert">
+      <strong>Plugin data could not be loaded</strong>
+      <span>{{ error }}</span>
+      <button type="button" @click="fetchPlugins">Try again</button>
+    </div>
+    <DataTable v-else :plugins="plugins" />
+  </main>
 </template>
 
 <script>
@@ -12,48 +22,49 @@ export default {
   data() {
     return {
       plugins: [],
-      selectedPlugin: null
+      loading: true,
+      error: '',
+      themeMessageHandler: null
     };
   },
   mounted() {
+    this.configureTheme();
     this.fetchPlugins();
+  },
+  beforeUnmount() {
+    if (this.themeMessageHandler) window.removeEventListener('message', this.themeMessageHandler);
   },
   methods: {
     async fetchPlugins() {
+      this.loading = true;
+      this.error = '';
       try {
         const response = await fetch('https://developers.homebridge.io/analytics/homebridge_plugins.json');
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error(`The analytics service returned ${response.status}.`);
         }
         this.plugins = await response.json();
       } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
+        this.error = 'Check the server’s internet connection and try again.';
+      } finally {
+        this.loading = false;
       }
     },
-    showPluginDetails(plugin) {
-      this.selectedPlugin = plugin;
+    applyTheme(theme) {
+      if (theme === 'light' || theme === 'dark') {
+        document.documentElement.dataset.theme = theme;
+      }
+    },
+    configureTheme() {
+      const requestedTheme = new URLSearchParams(window.location.search).get('theme');
+      this.applyTheme(requestedTheme);
+
+      this.themeMessageHandler = (event) => {
+        if (event.data?.type === 'homebridge-theme') this.applyTheme(event.data.theme);
+      };
+      window.addEventListener('message', this.themeMessageHandler);
     }
   }
 };
 </script>
-
-<style>
-/* Add some basic styling */
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-table, th, td {
-  border: 1px solid black;
-}
-
-th, td {
-  padding: 8px;
-  text-align: left;
-}
-
-input {
-  margin-bottom: 20px;
-}
-</style>
