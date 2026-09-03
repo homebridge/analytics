@@ -270,7 +270,7 @@ tbody tr:hover td { background: #f8fbff; }
   .page-header { align-items: flex-start; flex-direction: column; gap: 14px; }
   .result-count { padding-left: 12px; }
   .filters { grid-template-columns: 1fr; padding: 14px; }
-  .summary span { display: none; }
-  .quality-legend { display: inline; }
+.summary span { display: none; }
+  .summary .quality-legend { display: inline; }
   .table-container { max-height: 72vh; }
 }
