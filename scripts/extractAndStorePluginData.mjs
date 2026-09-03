@@ -63,6 +63,19 @@ export function extractGithubRepo(repository) {
   }
 }
 
+export function resolveRepository(repository, homepage) {
+  const repositoryRepo = extractGithubRepo(repository);
+  const homepageRepo = extractGithubRepo(homepage);
+
+  // Some packages created with an old npm template accidentally publish npm/cli
+  // as their repository while still providing their real project as homepage.
+  if (repositoryRepo?.key === 'npm/cli' && homepageRepo?.key !== 'npm/cli') {
+    return homepageRepo?.url || repository;
+  }
+
+  return repositoryRepo ? repository : (homepageRepo?.url || repository || null);
+}
+
 function readPreviousPluginData() {
   try {
     const previousData = JSON.parse(fs.readFileSync('../homebridge_plugins.json', 'utf8'));
@@ -305,11 +318,15 @@ export async function getNpmLastWeekDownloads(pluginNames, previousPlugins = new
   const now = options.now || new Date().toISOString();
   const counts = {};
   const updatedAt = {};
+  const starts = {};
+  const ends = {};
 
   for (const pluginName of pluginNames) {
     const previous = previousPlugins.get(pluginName);
     counts[pluginName] = Number.isInteger(previous?.npmDownloads) ? previous.npmDownloads : 0;
     updatedAt[pluginName] = previous?.npmDownloadsUpdatedAt || null;
+    starts[pluginName] = previous?.npmDownloadsStart || null;
+    ends[pluginName] = previous?.npmDownloadsEnd || null;
   }
 
   const unscoped = pluginNames.filter(name => !name.startsWith('@'));
@@ -348,6 +365,8 @@ export async function getNpmLastWeekDownloads(pluginNames, previousPlugins = new
           if (Number.isInteger(data.downloads)) {
             counts[names[0]] = data.downloads;
             updatedAt[names[0]] = now;
+            starts[names[0]] = data.start || null;
+            ends[names[0]] = data.end || null;
             refreshedCount++;
           }
         } else {
@@ -355,6 +374,8 @@ export async function getNpmLastWeekDownloads(pluginNames, previousPlugins = new
             if (Number.isInteger(data[name]?.downloads)) {
               counts[name] = data[name].downloads;
               updatedAt[name] = now;
+              starts[name] = data[name].start || null;
+              ends[name] = data[name].end || null;
               refreshedCount++;
             }
           }
@@ -373,7 +394,11 @@ export async function getNpmLastWeekDownloads(pluginNames, previousPlugins = new
   }
 
   console.log(`npm downloads: ${requestCount} requests, ${refreshedCount}/${pluginNames.length} refreshed, ${staleScoped.length} scoped packages stale${throttled ? ', stopped after rate limiting' : ''}`);
-  return { counts, updatedAt };
+  return { counts, updatedAt, starts, ends };
+}
+
+export function getDownloadMetrics(npmDownloads, githubDownloads) {
+  return { downloads: npmDownloads, npmDownloads, githubDownloads };
 }
 
 function isHomebridge2Ready(plugin) {
@@ -412,15 +437,20 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
     const owner = (author === 'Not supplied') ? maintainers.join(', ') : author;
     const npmDownloads = npmDownloadData.counts[packageName] || 0;
     const npmDownloadsUpdatedAt = npmDownloadData.updatedAt[packageName] || null;
+    const npmDownloadsStart = npmDownloadData.starts[packageName] || null;
+    const npmDownloadsEnd = npmDownloadData.ends[packageName] || null;
     const homebridge2ready = isHomebridge2Ready(versionData);
-    const repository = versionData.repository || data.repository || null;
+    const repository = resolveRepository(
+      versionData.repository || data.repository || null,
+      versionData.homepage || data.homepage || null
+    );
 
     // Check if the plugin is verified
     const verified = verifiedPlugins.includes(packageName);
     // console.log('githubDownloads:', packageName, version, githubDownloads[packageName + '-' + version]);
     // Add GitHub downloads (if present) to npm downloads
     const githubDownloadCount = githubDownloads[packageName + '-' + version] || 0;
-    const totalDownloads = npmDownloads + githubDownloadCount;
+    const downloadMetrics = getDownloadMetrics(npmDownloads, githubDownloadCount);
     await sleep(1000); // Sleep for 1 second to avoid rate limiting
     return {
       name: packageName,
@@ -436,11 +466,13 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
       deprecated,
       displayName,
       owner,
-      downloads: totalDownloads, // Sum npm and GitHub downloads
+      downloads: downloadMetrics.downloads,
       verified,  // Include verified status
       npmDownloads,
       npmDownloadsUpdatedAt,
-      githubDownloads: githubDownloadCount, // Track GitHub downloads separately
+      npmDownloadsStart,
+      npmDownloadsEnd,
+      githubDownloads: downloadMetrics.githubDownloads,
       homebridge2ready,
       repository,
     };

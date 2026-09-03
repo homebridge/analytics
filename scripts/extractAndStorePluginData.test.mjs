@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addGithubStars, extractGithubRepo, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads } from './extractAndStorePluginData.mjs';
+import { addGithubStars, extractGithubRepo, getDownloadMetrics, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, resolveRepository } from './extractAndStorePluginData.mjs';
 import { getPluginTransport } from '../vue-data-analyzer/src/pluginTransports.js';
 
 test('extractGithubRepo supports common npm repository formats', () => {
@@ -24,6 +24,22 @@ test('extractGithubRepo rejects unsupported and malformed repositories', () => {
   assert.equal(extractGithubRepo('https://gitlab.com/homebridge/analytics'), null);
   assert.equal(extractGithubRepo('not a repository'), null);
   assert.equal(extractGithubRepo('https://example.com/github.com/homebridge/analytics'), null);
+});
+
+test('resolveRepository replaces the npm CLI placeholder with a GitHub homepage', () => {
+  assert.equal(
+    resolveRepository(
+      { type: 'git', url: 'git+https://github.com/npm/cli.git' },
+      'https://github.com/Kwintenvdb/homebridge-vesync-client'
+    ),
+    'https://github.com/Kwintenvdb/homebridge-vesync-client'
+  );
+});
+
+test('resolveRepository preserves a valid published repository', () => {
+  const repository = { type: 'git', url: 'git+https://github.com/homebridge/analytics.git' };
+  assert.equal(resolveRepository(repository, 'https://github.com/another/project'), repository);
+  assert.equal(resolveRepository(null, 'https://github.com/homebridge/analytics#readme'), 'https://github.com/homebridge/analytics');
 });
 
 test('addGithubStars reuses a fresh cached count for duplicate repositories', async () => {
@@ -113,6 +129,28 @@ test('getNpmLastWeekDownloads retains cached counts and stops after a 429', asyn
   assert.equal(result.counts['@scope/one'], 11);
   assert.equal(result.counts['@scope/two'], 22);
   assert.equal(result.updatedAt['@scope/one'], oldTimestamp);
+});
+
+test('getNpmLastWeekDownloads records the npm reporting window', async () => {
+  const result = await getNpmLastWeekDownloads(['plugin-one'], new Map(), {
+    requestDelayMs: 0,
+    fetchFn: async () => ({
+      ok: true,
+      json: async () => ({ downloads: 95, start: '2026-08-23', end: '2026-08-29' }),
+    }),
+  });
+
+  assert.equal(result.counts['plugin-one'], 95);
+  assert.equal(result.starts['plugin-one'], '2026-08-23');
+  assert.equal(result.ends['plugin-one'], '2026-08-29');
+});
+
+test('getDownloadMetrics keeps weekly npm and lifetime GitHub downloads separate', () => {
+  assert.deepEqual(getDownloadMetrics(95, 12067), {
+    downloads: 95,
+    npmDownloads: 95,
+    githubDownloads: 12067,
+  });
 });
 
 test('getReleaseDownloads retains cached counts after GitHub rate limiting', async () => {
