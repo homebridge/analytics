@@ -1,16 +1,16 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Wed Sep 09 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Thu Sep 10 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 204<br>
+**Total Plugins Homebridge 2 Ready:** 205<br>
 **Total Plugins Not Homebridge 2 Ready:** 40
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 231 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 613 | true | Not ready |
 | @busse/homebridge-pluggit | undefined | 2022-09-25T11:02:09.802Z | 23 | true | Not ready |
 | homebridge-androidtv | @louis49 | 2022-06-20T05:51:55.834Z | 26 | true | Not ready |
 | homebridge-browsercam | @louis49 | 2022-03-08T08:33:03.109Z | 26 | true | Not ready |
