@@ -1,12 +1,12 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Sun Sep 13 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Mon Sep 14 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 164<br>
-**Total Plugins Not Homebridge 2 Ready:** 24
+**Total Plugins Homebridge 2 Ready:** 165<br>
+**Total Plugins Not Homebridge 2 Ready:** 23
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
@@ -16,7 +16,6 @@
 | homebridge-camera-ui | SeydX | 2022-04-24T15:52:44.631Z | 92 | true | Not ready |
 | homebridge-cuby | mtflud | 2023-03-02T18:53:15.706Z | 66 | true | Not ready |
 | homebridge-easee | John Valiquette | 2024-01-07T14:45:10.852Z | 51 | true | Not ready |
-| homebridge-edomoticz | PatchworkBoy | 2025-06-19T19:35:12.797Z | 25 | true | Not ready |
 | homebridge-fordpass | Brandawg93 | 2024-06-06T19:19:10.346Z | 29 | true | Not ready |
 | homebridge-fritz-platform | SeydX | 2021-10-06T00:35:11.201Z | 22 | true | Not ready |
 | homebridge-google-nest-sdm | potmat | 2026-07-22T19:40:02.369Z | 38 | true | Not ready |
