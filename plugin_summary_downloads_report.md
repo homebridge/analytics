@@ -1,17 +1,18 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Mon Sep 14 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Tue Sep 15 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 165<br>
-**Total Plugins Not Homebridge 2 Ready:** 23
+**Total Plugins Homebridge 2 Ready:** 163<br>
+**Total Plugins Not Homebridge 2 Ready:** 24
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
 | @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 613 | true | Not ready |
 | homebridge-androidtv | @louis49 | 2022-06-20T05:51:55.834Z | 56 | true | Not ready |
+| homebridge-bigassfans-2 | Joshua Appleman | 2026-09-15T03:59:43.297Z | 53 | true | Not ready |
 | homebridge-camera-ffmpeg | northernman, bwp91, sunookitsune | 2021-12-28T22:50:56.261Z | 3472 | true | Not ready |
 | homebridge-camera-ui | SeydX | 2022-04-24T15:52:44.631Z | 92 | true | Not ready |
 | homebridge-cuby | mtflud | 2023-03-02T18:53:15.706Z | 66 | true | Not ready |

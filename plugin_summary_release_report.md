@@ -1,12 +1,12 @@
-# Plugin Summary Report (Based on Latest Release) - Mon Sep 14 2026
+# Plugin Summary Report (Based on Latest Release) - Tue Sep 15 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Sun Sep 14 2025 - Mon Sep 14 2026
+- Latest Release within 12 months: Mon Sep 15 2025 - Tue Sep 15 2026
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 387<br>
-**Total Plugins Not Homebridge 2 Ready:** 40
+**Total Plugins Homebridge 2 Ready:** 386<br>
+**Total Plugins Not Homebridge 2 Ready:** 42
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
@@ -14,6 +14,7 @@
 | @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-05-09T15:34:25.344Z | 9 | true | Not ready |
 | homebridge-ahoy-dtu | Christian Braun | 2025-09-15T21:26:23.612Z | 3 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 10 | true | Not ready |
+| homebridge-bigassfans-2 | Joshua Appleman | 2026-09-15T03:59:43.297Z | 53 | true | Not ready |
 | homebridge-clearlight-sauna | Brad Aurisch | 2026-04-13T08:44:28.219Z | 5 | true | Not ready |
 | homebridge-davis-2 | Brendan Keyport | 2026-07-29T23:41:38.907Z | 8 | true | Not ready |
 | homebridge-egreat-androidtv | Carlos Gamez | 2026-05-10T02:38:49.285Z | 4 | true | Not ready |
@@ -31,6 +32,7 @@
 | homebridge-myplaceiq | Ben Burt | 2026-07-28T02:02:03.315Z | 5 | true | Not ready |
 | homebridge-nanit-pro | GhostOnyx | 2026-06-06T07:50:07.399Z | 31 | true | Not ready |
 | homebridge-netatmo-home-control | barichon21000 | 2026-07-15T18:41:36.881Z | 5 | true | Not ready |
+| homebridge-nuheat2 | Joshua Appleman | 2026-09-15T04:51:42.251Z | 5 | true | Not ready |
 | homebridge-nuvo | Will MacCormack | 2026-05-11T21:12:23.051Z | 5 | true | Not ready |
 | homebridge-openclaw | davidevp | 2026-02-20T04:34:41.560Z | 2 | true | Not ready |
 | homebridge-openrgb | Dallas Hoffman | 2025-12-04T04:37:52.216Z | 2 | true | Not ready |
