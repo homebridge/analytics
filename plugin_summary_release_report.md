@@ -1,8 +1,8 @@
-# Plugin Summary Report (Based on Latest Release) - Wed Sep 16 2026
+# Plugin Summary Report (Based on Latest Release) - Thu Sep 17 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Tue Sep 16 2025 - Wed Sep 16 2026
+- Latest Release within 12 months: Wed Sep 17 2025 - Thu Sep 17 2026
 - Homebridge 2 Ready: Not ready
 
 **Total Plugins Homebridge 2 Ready:** 386<br>
@@ -10,8 +10,8 @@
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 613 | true | Not ready |
-| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-05-09T15:34:25.344Z | 4 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 155 | true | Not ready |
+| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-16T17:22:17.855Z | 4 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 10 | true | Not ready |
 | homebridge-bigassfans-2 | Joshua Appleman | 2026-09-15T03:59:43.297Z | 53 | true | Not ready |
 | homebridge-clearlight-sauna | Brad Aurisch | 2026-04-13T08:44:28.219Z | 5 | true | Not ready |

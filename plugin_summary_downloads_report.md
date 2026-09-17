@@ -1,4 +1,4 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Wed Sep 16 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Thu Sep 17 2026
 
 **Filters Applied:**
 - Verified: true
@@ -10,7 +10,7 @@
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 613 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 155 | true | Not ready |
 | homebridge-androidtv | @louis49 | 2022-06-20T05:51:55.834Z | 56 | true | Not ready |
 | homebridge-bigassfans-2 | Joshua Appleman | 2026-09-15T03:59:43.297Z | 53 | true | Not ready |
 | homebridge-camera-ffmpeg | northernman, bwp91, sunookitsune | 2021-12-28T22:50:56.261Z | 3472 | true | Not ready |
