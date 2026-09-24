@@ -1,4 +1,4 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Wed Sep 23 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Thu Sep 24 2026
 
 **Filters Applied:**
 - Verified: true
@@ -6,11 +6,12 @@
 - Homebridge 2 Ready: Not ready
 
 **Total Plugins Homebridge 2 Ready:** 178<br>
-**Total Plugins Not Homebridge 2 Ready:** 25
+**Total Plugins Not Homebridge 2 Ready:** 26
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 155 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 283 | true | Not ready |
+| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 482 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 69 | true | Not ready |
 | homebridge-amazondash-mac | Shane McWhorter | 2023-03-12T17:23:08.846Z | 183 | true | Not ready |
 | homebridge-androidtv | @louis49 | 2022-06-20T05:51:55.834Z | 22 | true | Not ready |
