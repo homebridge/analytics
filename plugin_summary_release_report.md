@@ -1,11 +1,11 @@
-# Plugin Summary Report (Based on Latest Release) - Thu Sep 24 2026
+# Plugin Summary Report (Based on Latest Release) - Fri Sep 25 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Wed Sep 24 2025 - Thu Sep 24 2026
+- Latest Release within 12 months: Thu Sep 25 2025 - Fri Sep 25 2026
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 383<br>
+**Total Plugins Homebridge 2 Ready:** 384<br>
 **Total Plugins Not Homebridge 2 Ready:** 42
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
@@ -38,7 +38,7 @@
 | homebridge-pentair-cloud | thephd | 2026-05-26T17:05:41.091Z | 7 | true | Not ready |
 | homebridge-philips-dline-sicp | Thomas Dazy | 2026-01-17T15:37:56.812Z | 0 | true | Not ready |
 | homebridge-pitboss | mudlife318 | 2026-04-15T15:27:25.136Z | 0 | true | Not ready |
-| homebridge-playstation-title-game | Nik_Dev | 2026-07-15T22:19:34.745Z | 5 | true | Not ready |
+| homebridge-playstation-title-game | Nik_Dev | 2026-09-24T14:19:29.822Z | 5 | true | Not ready |
 | homebridge-powershades | Alex Schmelkin | 2026-01-01T18:31:28.411Z | 2 | true | Not ready |
 | homebridge-sensi | Kitra Drago | 2026-02-02T03:22:23.742Z | 0 | true | Not ready |
 | homebridge-sensorpush | Marwan Alamat | 2025-12-19T02:06:53.146Z | 0 | true | Not ready |
