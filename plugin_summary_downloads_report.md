@@ -1,4 +1,4 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Wed Oct 07 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Thu Oct 08 2026
 
 **Filters Applied:**
 - Verified: true
@@ -10,7 +10,7 @@
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 115 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 467 | true | Not ready |
 | @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 29 | true | Not ready |
 | homebridge-433-arduino | Normen Hansen | 2020-11-29T13:11:32.687Z | 31 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 378 | true | Not ready |
