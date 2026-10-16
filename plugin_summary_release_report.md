@@ -1,16 +1,16 @@
-# Plugin Summary Report (Based on Latest Release) - Thu Oct 15 2026
+# Plugin Summary Report (Based on Latest Release) - Fri Oct 16 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Wed Oct 15 2025 - Thu Oct 15 2026
+- Latest Release within 12 months: Thu Oct 16 2025 - Fri Oct 16 2026
 - Homebridge 2 Ready: Not ready
 
 **Total Plugins Homebridge 2 Ready:** 380<br>
-**Total Plugins Not Homebridge 2 Ready:** 42
+**Total Plugins Not Homebridge 2 Ready:** 43
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 467 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 658 | true | Not ready |
 | @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 33 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 35 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 40 | true | Not ready |
@@ -32,19 +32,20 @@
 | homebridge-myplaceiq | Ben Burt | 2026-07-28T02:02:03.315Z | 12 | true | Not ready |
 | homebridge-nanit-pro | GhostOnyx | 2026-06-06T07:50:07.399Z | 15 | true | Not ready |
 | homebridge-netatmo-home-control | barichon21000 | 2026-07-15T18:41:36.881Z | 7 | true | Not ready |
-| homebridge-nuheat2 | Joshua Appleman | 2026-09-15T04:51:42.251Z | 13 | true | Not ready |
+| homebridge-nuheat2 | Joshua Appleman | 2026-10-15T20:15:28.211Z | 13 | true | Not ready |
 | homebridge-nuvo | Will MacCormack | 2026-05-11T21:12:23.051Z | 3 | true | Not ready |
 | homebridge-openclaw | davidevp | 2026-02-20T04:34:41.560Z | 3 | true | Not ready |
 | homebridge-openrgb | Dallas Hoffman | 2025-12-04T04:37:52.216Z | 25 | true | Not ready |
 | homebridge-pentair-cloud | thephd | 2026-05-26T17:05:41.091Z | 10 | true | Not ready |
 | homebridge-philips-dline-sicp | Thomas Dazy | 2026-01-17T15:37:56.812Z | 2 | true | Not ready |
 | homebridge-pitboss | mudlife318 | 2026-04-15T15:27:25.136Z | 2 | true | Not ready |
-| homebridge-playstation-title-game | Nik_Dev | 2026-09-24T14:19:29.822Z | 13 | true | Not ready |
+| homebridge-playstation-title-game | Nik_Dev | 2026-10-15T17:40:51.137Z | 13 | true | Not ready |
 | homebridge-powershades | Alex Schmelkin | 2026-01-01T18:31:28.411Z | 1 | true | Not ready |
 | homebridge-sensi | Kitra Drago | 2026-02-02T03:22:23.742Z | 2 | true | Not ready |
 | homebridge-sensorpush | Marwan Alamat | 2025-12-19T02:06:53.146Z | 1 | true | Not ready |
 | homebridge-signalk | Christian Wegerhoff | 2026-07-09T15:06:53.955Z | 26 | true | Not ready |
 | homebridge-sleeptracker-bed | Eric Hatch | 2026-02-10T14:57:16.384Z | 3 | true | Not ready |
+| homebridge-sma-home-manager | Wim Leers | 2026-10-15T11:57:16.251Z | 26 | true | Not ready |
 | homebridge-solaxcloud-api | allmightysauron | 2026-06-03T19:10:38.765Z | 68 | true | Not ready |
 | homebridge-somneo | zackwag | 2026-10-10T14:13:03.759Z | 375 | true | Not ready |
 | homebridge-sonos-alert | lsapan | 2026-01-08T05:43:48.318Z | 2 | true | Not ready |

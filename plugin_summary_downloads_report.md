@@ -1,4 +1,4 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Thu Oct 15 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Fri Oct 16 2026
 
 **Filters Applied:**
 - Verified: true
@@ -10,7 +10,7 @@
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 467 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 658 | true | Not ready |
 | @hernas/homebridge-panasonic-heat-pump | bhernas, bimusiek | 2024-09-02T08:49:28.264Z | 33 | true | Not ready |
 | @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 33 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 35 | true | Not ready |
@@ -44,7 +44,7 @@
 | homebridge-shelly | Alexander Rydén | 2021-08-09T20:15:11.473Z | 123 | true | Not ready |
 | homebridge-shelly-ng | Alexander Rydén | 2022-08-23T08:48:25.160Z | 32 | true | Not ready |
 | homebridge-signalk | Christian Wegerhoff | 2026-07-09T15:06:53.955Z | 26 | true | Not ready |
-| homebridge-sma-home-manager | Wim Leers | 2023-09-03T17:54:59.009Z | 26 | true | Not ready |
+| homebridge-sma-home-manager | Wim Leers | 2026-10-15T11:57:16.251Z | 26 | true | Not ready |
 | homebridge-smartthings-ik | iklein99 | 2024-01-25T13:44:35.113Z | 31 | true | Not ready |
 | homebridge-solaxcloud-api | allmightysauron | 2026-06-03T19:10:38.765Z | 68 | true | Not ready |
 | homebridge-somneo | zackwag | 2026-10-10T14:13:03.759Z | 375 | true | Not ready |
