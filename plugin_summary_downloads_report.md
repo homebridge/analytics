@@ -1,18 +1,17 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Fri Oct 16 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Sat Oct 17 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 202<br>
-**Total Plugins Not Homebridge 2 Ready:** 46
+**Total Plugins Homebridge 2 Ready:** 201<br>
+**Total Plugins Not Homebridge 2 Ready:** 45
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
 | @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 658 | true | Not ready |
 | @hernas/homebridge-panasonic-heat-pump | bhernas, bimusiek | 2024-09-02T08:49:28.264Z | 33 | true | Not ready |
-| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 33 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 35 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 40 | true | Not ready |
 | homebridge-androidtv | @louis49 | 2022-06-20T05:51:55.834Z | 23 | true | Not ready |
@@ -31,7 +30,7 @@
 | homebridge-kasa-hub | zmx264 | 2025-11-05T19:58:07.553Z | 34 | true | Not ready |
 | homebridge-kumo | fjs21 | 2023-12-27T15:13:08.373Z | 41 | true | Not ready |
 | homebridge-level-sense | Walt Moorhouse | 2023-04-15T05:27:01.275Z | 28 | true | Not ready |
-| homebridge-lg-thinqconnect-ac | cosmo84 | 2026-10-02T14:30:54.222Z | 40 | true | Not ready |
+| homebridge-lg-thinqconnect-ac | cosmo84 | 2026-10-16T09:18:09.702Z | 40 | true | Not ready |
 | homebridge-lighthouse | David Maher | 2021-02-17T22:48:49.483Z | 34 | true | Not ready |
 | homebridge-mi-humidifier | russtone@yandex.ru | 2023-02-06T22:23:16.869Z | 47 | true | Not ready |
 | homebridge-mobilelink | Nicholas Penree | 2023-12-10T20:07:04.919Z | 52 | true | Not ready |

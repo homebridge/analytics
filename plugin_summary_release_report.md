@@ -1,8 +1,8 @@
-# Plugin Summary Report (Based on Latest Release) - Fri Oct 16 2026
+# Plugin Summary Report (Based on Latest Release) - Sat Oct 17 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Thu Oct 16 2025 - Fri Oct 16 2026
+- Latest Release within 12 months: Fri Oct 17 2025 - Sat Oct 17 2026
 - Homebridge 2 Ready: Not ready
 
 **Total Plugins Homebridge 2 Ready:** 380<br>
@@ -11,7 +11,7 @@
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
 | @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 658 | true | Not ready |
-| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 33 | true | Not ready |
+| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 20 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 35 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 40 | true | Not ready |
 | homebridge-bigassfans-2 | Joshua Appleman | 2026-09-15T03:59:43.297Z | 11 | true | Not ready |
@@ -24,7 +24,7 @@
 | homebridge-kasa-hub | zmx264 | 2025-11-05T19:58:07.553Z | 34 | true | Not ready |
 | homebridge-lennox | Luke Alonso | 2025-12-21T05:51:34.895Z | 2 | true | Not ready |
 | homebridge-lennox-icomfort-cloud | Luke Zbihlyj | 2026-06-15T19:04:33.436Z | 14 | true | Not ready |
-| homebridge-lg-thinqconnect-ac | cosmo84 | 2026-10-02T14:30:54.222Z | 40 | true | Not ready |
+| homebridge-lg-thinqconnect-ac | cosmo84 | 2026-10-16T09:18:09.702Z | 40 | true | Not ready |
 | homebridge-lifx-plugin | calvarium | 2026-03-01T21:43:26.088Z | 13 | true | Not ready |
 | homebridge-luftdaten | Rafał Rudecki | 2026-06-28T13:35:26.708Z | 1 | true | Not ready |
 | homebridge-mi-hygrothermograph-hb2 | Nicolas Lehmann | 2026-07-18T19:23:02.131Z | 6 | true | Not ready |
