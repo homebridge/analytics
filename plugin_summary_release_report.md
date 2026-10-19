@@ -1,12 +1,12 @@
-# Plugin Summary Report (Based on Latest Release) - Sun Oct 18 2026
+# Plugin Summary Report (Based on Latest Release) - Mon Oct 19 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Sat Oct 18 2025 - Sun Oct 18 2026
+- Latest Release within 12 months: Sun Oct 19 2025 - Mon Oct 19 2026
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 379<br>
-**Total Plugins Not Homebridge 2 Ready:** 43
+**Total Plugins Homebridge 2 Ready:** 402<br>
+**Total Plugins Not Homebridge 2 Ready:** 44
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
@@ -14,7 +14,8 @@
 | @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 20 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 18 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 14 | true | Not ready |
-| homebridge-bigassfans-2 | Joshua Appleman | 2026-09-15T03:59:43.297Z | 7 | true | Not ready |
+| homebridge-bewave-mqtt | rmarobert | 2026-10-17T18:55:24.566Z | 20 | true | Not ready |
+| homebridge-bigassfans-2 | Joshua Appleman | 2026-10-18T13:14:52.422Z | 7 | true | Not ready |
 | homebridge-clearlight-sauna | Brad Aurisch | 2026-04-13T08:44:28.219Z | 7 | true | Not ready |
 | homebridge-davis-2 | Brendan Keyport | 2026-07-29T23:41:38.907Z | 3 | true | Not ready |
 | homebridge-egreat-androidtv | Carlos Gamez | 2026-05-10T02:38:49.285Z | 4 | true | Not ready |
