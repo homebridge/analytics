@@ -1,11 +1,11 @@
-# Plugin Summary Report (Based on Latest Release) - Wed Oct 21 2026
+# Plugin Summary Report (Based on Latest Release) - Thu Oct 22 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Tue Oct 21 2025 - Wed Oct 21 2026
+- Latest Release within 12 months: Wed Oct 22 2025 - Thu Oct 22 2026
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 404<br>
+**Total Plugins Homebridge 2 Ready:** 405<br>
 **Total Plugins Not Homebridge 2 Ready:** 44
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
@@ -15,7 +15,7 @@
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 30 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 8 | true | Not ready |
 | homebridge-bewave-mqtt | rmarobert | 2026-10-19T17:34:14.650Z | 1403 | true | Not ready |
-| homebridge-bigassfans-2 | Joshua Appleman | 2026-10-18T13:14:52.422Z | 214 | true | Not ready |
+| homebridge-bigassfans-2 | Joshua Appleman | 2026-10-21T14:38:57.292Z | 214 | true | Not ready |
 | homebridge-clearlight-sauna | Brad Aurisch | 2026-04-13T08:44:28.219Z | 4 | true | Not ready |
 | homebridge-davis-2 | Brendan Keyport | 2026-07-29T23:41:38.907Z | 2 | true | Not ready |
 | homebridge-egreat-androidtv | Carlos Gamez | 2026-05-10T02:38:49.285Z | 3 | true | Not ready |
@@ -30,7 +30,7 @@
 | homebridge-luftdaten | Rafał Rudecki | 2026-06-28T13:35:26.708Z | 1 | true | Not ready |
 | homebridge-mi-hygrothermograph-hb2 | Nicolas Lehmann | 2026-07-18T19:23:02.131Z | 2 | true | Not ready |
 | homebridge-moodo | Vladislav Landa | 2026-05-08T06:51:23.894Z | 9 | true | Not ready |
-| homebridge-myplaceiq | Ben Burt | 2026-07-28T02:02:03.315Z | 2 | true | Not ready |
+| homebridge-myplaceiq | Ben Burt | 2026-10-21T23:20:48.867Z | 2 | true | Not ready |
 | homebridge-nanit-pro | GhostOnyx | 2026-06-06T07:50:07.399Z | 9 | true | Not ready |
 | homebridge-netatmo-home-control | barichon21000 | 2026-07-15T18:41:36.881Z | 2 | true | Not ready |
 | homebridge-nuheat2 | Joshua Appleman | 2026-10-17T21:08:30.976Z | 218 | true | Not ready |
@@ -48,7 +48,7 @@
 | homebridge-sleeptracker-bed | Eric Hatch | 2026-02-10T14:57:16.384Z | 9 | true | Not ready |
 | homebridge-sma-home-manager | Wim Leers | 2026-10-15T11:57:16.251Z | 77 | true | Not ready |
 | homebridge-solaxcloud-api | allmightysauron | 2026-06-03T19:10:38.765Z | 28 | true | Not ready |
-| homebridge-somneo | zackwag | 2026-10-10T14:13:03.759Z | 41 | true | Not ready |
+| homebridge-somneo | zackwag | 2026-10-21T13:15:06.447Z | 41 | true | Not ready |
 | homebridge-sonos-alert | lsapan | 2026-01-08T05:43:48.318Z | 1 | true | Not ready |
 | homebridge-sonos-multiroom | lukas.roegner | 2026-05-08T07:11:03.543Z | 11 | true | Not ready |
 | homebridge-tempo | Christophe Bansart | 2026-01-05T09:45:35.636Z | 4 | true | Not ready |

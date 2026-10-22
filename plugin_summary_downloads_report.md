@@ -1,11 +1,11 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Wed Oct 21 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Thu Oct 22 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 198<br>
+**Total Plugins Homebridge 2 Ready:** 199<br>
 **Total Plugins Not Homebridge 2 Ready:** 52
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
@@ -16,7 +16,7 @@
 | homebridge-anthemreceiver | ehylands | 2023-10-07T15:04:30.306Z | 22 | true | Not ready |
 | homebridge-aqicn | David Maher | 2022-03-26T20:35:10.763Z | 31 | true | Not ready |
 | homebridge-bewave-mqtt | rmarobert | 2026-10-19T17:34:14.650Z | 1403 | true | Not ready |
-| homebridge-bigassfans-2 | Joshua Appleman | 2026-10-18T13:14:52.422Z | 214 | true | Not ready |
+| homebridge-bigassfans-2 | Joshua Appleman | 2026-10-21T14:38:57.292Z | 214 | true | Not ready |
 | homebridge-blinds-cmd | HJD https://github.com/hjdhjd | 2020-12-01T00:05:06.063Z | 58 | true | Not ready |
 | homebridge-camera-ffmpeg | northernman, bwp91, sunookitsune | 2021-12-28T22:50:56.261Z | 13185 | true | Not ready |
 | homebridge-camera-ui | SeydX | 2022-04-24T15:52:44.631Z | 89 | true | Not ready |
@@ -53,7 +53,7 @@
 | homebridge-smartthings-ik | iklein99 | 2024-01-25T13:44:35.113Z | 56 | true | Not ready |
 | homebridge-smtp-motion | David Maher | 2021-02-21T03:22:39.024Z | 27 | true | Not ready |
 | homebridge-solaxcloud-api | allmightysauron | 2026-06-03T19:10:38.765Z | 28 | true | Not ready |
-| homebridge-somneo | zackwag | 2026-10-10T14:13:03.759Z | 41 | true | Not ready |
+| homebridge-somneo | zackwag | 2026-10-21T13:15:06.447Z | 41 | true | Not ready |
 | homebridge-sonos-starter-track | planetwayne | 2021-08-13T14:11:43.713Z | 24 | true | Not ready |
 | homebridge-stagekit | David Maher | 2022-09-11T01:34:37.544Z | 28 | true | Not ready |
 | homebridge-switchbot-bluetooth-platform | galzo | 2023-08-24T22:41:33.646Z | 31 | true | Not ready |
