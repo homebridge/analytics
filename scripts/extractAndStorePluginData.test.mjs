@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addGithubStars, extractGithubRepo, getDownloadMetrics, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, resolveRepository } from './extractAndStorePluginData.mjs';
+import { addGithubStars, assertDiscoveryComplete, discoverHomebridgePlugins, extractGithubRepo, getDownloadMetrics, getHomebridgeNamedPackages, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, hasHomebridgePluginKeyword, resolveRepository, searchHomebridgePlugins, selectHomebridgePlugins } from './extractAndStorePluginData.mjs';
 import { getPluginTransport } from '../vue-data-analyzer/src/pluginTransports.js';
 
 test('extractGithubRepo supports common npm repository formats', () => {
@@ -275,6 +275,111 @@ test('getHomebridgePlugins retries a throttled search page', async () => {
   assert.equal(requestCount, 2);
   assert.deepEqual(delays, [1000]);
   assert.deepEqual(plugins, ['plugin-1']);
+});
+
+test('searchHomebridgePlugins returns the npm reported total alongside the names', async () => {
+  const result = await searchHomebridgePlugins({
+    resultsPerPage: 2,
+    requestDelayMs: 0,
+    fetchFn: async () => ({
+      ok: true,
+      json: async () => ({ total: 9, objects: [{ package: { name: 'plugin-1' } }, { package: { name: 'plugin-2' } }] }),
+    }),
+  });
+
+  assert.deepEqual(result, { names: ['plugin-1', 'plugin-2'], reportedTotal: 9 });
+});
+
+test('getHomebridgeNamedPackages pages through the listing by key without repeating rows', async () => {
+  const rows = ['homebridge-a', 'homebridge-b', 'homebridge-c', 'homebridge-d', 'homebridge-e'];
+  const requestedUrls = [];
+
+  const names = await getHomebridgeNamedPackages({
+    pageSize: 2,
+    fetchFn: async url => {
+      requestedUrls.push(url);
+      const params = new URL(url).searchParams;
+      const from = Math.max(0, rows.indexOf(JSON.parse(params.get('startkey'))));
+      return { ok: true, json: async () => ({ rows: rows.slice(from, from + 2).map(id => ({ id, key: id })) }) };
+    },
+  });
+
+  assert.deepEqual(names, rows);
+  assert.equal(requestedUrls.length, 5);
+  const firstParams = new URL(requestedUrls[0]).searchParams;
+  assert.equal(firstParams.get('startkey'), '"homebridge-"');
+  assert.equal(firstParams.get('endkey'), '"homebridge-￰"');
+  assert.equal(firstParams.has('skip'), false);
+  assert.equal(new URL(requestedUrls[1]).searchParams.get('startkey'), '"homebridge-b"');
+});
+
+test('getHomebridgeNamedPackages retries throttling and fails on other errors', async () => {
+  let requestCount = 0;
+  const names = await getHomebridgeNamedPackages({
+    sleepFn: async () => {},
+    fetchFn: async () => {
+      requestCount++;
+      if (requestCount === 1) return { ok: false, status: 503, statusText: 'Service Unavailable', headers: { get: () => null } };
+      return { ok: true, json: async () => ({ rows: [{ id: 'homebridge-a' }] }) };
+    },
+  });
+  assert.equal(requestCount, 2);
+  assert.deepEqual(names, ['homebridge-a']);
+
+  await assert.rejects(
+    getHomebridgeNamedPackages({ fetchFn: async () => ({ ok: false, status: 404, statusText: 'Not Found' }) }),
+    /404 Not Found/
+  );
+});
+
+test('discoverHomebridgePlugins adds listed packages that npm search could not reach', async () => {
+  const result = await discoverHomebridgePlugins({
+    search: {
+      requestDelayMs: 0,
+      fetchFn: async () => ({
+        ok: true,
+        json: async () => ({ total: 3, objects: [{ package: { name: 'homebridge-a' } }, { package: { name: '@scope/homebridge-b' } }] }),
+      }),
+    },
+    listing: {
+      fetchFn: async () => ({ ok: true, json: async () => ({ rows: [{ id: 'homebridge-a' }, { id: 'homebridge-c' }] }) }),
+    },
+  });
+
+  assert.deepEqual(result, {
+    searchNames: ['homebridge-a', '@scope/homebridge-b'],
+    candidateNames: ['homebridge-c'],
+    reportedTotal: 3,
+  });
+});
+
+test('hasHomebridgePluginKeyword matches arrays and strings case-insensitively', () => {
+  assert.equal(hasHomebridgePluginKeyword(['homekit', 'homebridge-plugin']), true);
+  assert.equal(hasHomebridgePluginKeyword(['Homebridge-Plugin']), true);
+  assert.equal(hasHomebridgePluginKeyword('homebridge, homebridge-plugin'), true);
+  assert.equal(hasHomebridgePluginKeyword(['homebridge', 'homebridge-plugins']), false);
+  assert.equal(hasHomebridgePluginKeyword(undefined), false);
+});
+
+test('selectHomebridgePlugins keeps search results and only keyword-tagged listed candidates', () => {
+  const details = [
+    { name: 'homebridge-searched', keywords: [] },
+    { name: 'homebridge-searched-error', error: 'Error fetching package data' },
+    { name: 'homebridge-listed-plugin', keywords: ['homebridge-plugin'] },
+    { name: 'homebridge-listed-library', keywords: ['homebridge'] },
+    { name: 'homebridge-listed-error', error: 'Error fetching package data' },
+  ];
+
+  const selected = selectHomebridgePlugins(details, ['homebridge-searched', 'homebridge-searched-error']);
+
+  assert.deepEqual(selected.map(plugin => plugin.name), ['homebridge-searched', 'homebridge-searched-error', 'homebridge-listed-plugin']);
+});
+
+test('assertDiscoveryComplete fails when fewer plugins are found than npm reports', () => {
+  assert.throws(() => assertDiscoveryComplete(5250, 5915, Infinity), /Discovered 5250 plugins but npm reports 5915/);
+  assert.doesNotThrow(() => assertDiscoveryComplete(6068, 5915, Infinity));
+  assert.doesNotThrow(() => assertDiscoveryComplete(10, 5915, 10));
+  assert.doesNotThrow(() => assertDiscoveryComplete(10, null, Infinity));
 });
 
 test('getPluginTransport applies transport keyword declarations', () => {
