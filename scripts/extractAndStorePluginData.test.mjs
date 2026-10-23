@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addGithubStars, assertDiscoveryComplete, discoverHomebridgePlugins, extractGithubRepo, getDownloadMetrics, getHomebridgeNamedPackages, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, hasHomebridgePluginKeyword, resolveRepository, searchHomebridgePlugins, selectHomebridgePlugins } from './extractAndStorePluginData.mjs';
+import { addGithubStars, assertDiscoveryComplete, buildCollectionSummary, discoverHomebridgePlugins, extractGithubRepo, getDownloadMetrics, getHomebridgeNamedPackages, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, hasHomebridgePluginKeyword, resolveRepository, searchHomebridgePlugins, selectHomebridgePlugins } from './extractAndStorePluginData.mjs';
 import { getPluginTransport } from '../vue-data-analyzer/src/pluginTransports.js';
 
 test('extractGithubRepo supports common npm repository formats', () => {
@@ -393,4 +393,76 @@ test('getPluginTransport applies transport keyword declarations', () => {
 test('getPluginTransport normalizes string and mixed-case keywords', () => {
   assert.equal(getPluginTransport({ keywords: 'homebridge-plugin, supports-matter' }), 'Matter');
   assert.equal(getPluginTransport({ keywords: ['SUPPORTS-HAP', 'Supports-Matter'] }), 'HAP + Matter');
+});
+
+test('buildCollectionSummary reports discovery, plugin data and changes for a successful run', () => {
+  const startedAt = '2026-10-24T01:30:00.000Z';
+  const markdown = buildCollectionSummary({
+    startedAt,
+    durationMs: 270000,
+    reportedTotal: 3,
+    searchCount: 2,
+    candidateCount: 2,
+    verifiedListSize: 10,
+    previousNames: ['homebridge-a', 'homebridge-old'],
+    plugins: [
+      { name: 'homebridge-a', verified: true, homebridge2ready: 'Supported', npmDownloads: 1000, npmDownloadsUpdatedAt: '2026-10-24T01:31:00.000Z', githubStars: 5 },
+      { name: 'homebridge-b', deprecated: 'use homebridge-a', homebridge2ready: 'Not ready', npmDownloads: 234, npmDownloadsUpdatedAt: '2026-10-20T00:00:00.000Z' },
+      { name: 'homebridge-c', npmDownloads: 0 },
+    ],
+  });
+
+  assert.match(markdown, /collection succeeded ✅/);
+  assert.match(markdown, /Run time: 4\.5 minutes/);
+  assert.match(markdown, /\| npm reported total \| 3 \|/);
+  assert.match(markdown, /\| Extra packages with `homebridge-plugin` keyword \| 1 \|/);
+  assert.match(markdown, /\| Extra packages dropped \(no keyword or fetch error\) \| 1 \|/);
+  assert.match(markdown, /\| \*\*Plugins collected\*\* \| \*\*3\*\* \|/);
+  assert.match(markdown, /\| Verified plugins \(verified list size\) \| 1 \(10\) \|/);
+  assert.match(markdown, /\| Homebridge 2\.0 ready \| 1 \|/);
+  assert.match(markdown, /\| Deprecated \| 1 \|/);
+  assert.match(markdown, /\| npm weekly downloads refreshed this run \| 1 \|/);
+  assert.match(markdown, /\| Total npm weekly downloads \| 1,234 \|/);
+  assert.match(markdown, /\| With GitHub star count \| 1 \|/);
+  assert.match(markdown, /- Added: 2 — `homebridge-b`, `homebridge-c`/);
+  assert.match(markdown, /- Removed: 1 — `homebridge-old`/);
+  assert.doesNotMatch(markdown, /Warnings/);
+});
+
+test('buildCollectionSummary shows the failure reason and data warnings', () => {
+  const markdown = buildCollectionSummary({
+    error: 'Discovered 2 plugins but npm reports 5915; refusing to publish incomplete data',
+    searchCount: 2,
+    candidateCount: 0,
+    reportedTotal: 5915,
+    verifiedListSize: 0,
+    plugins: [
+      { name: 'homebridge-a', npmDownloads: 1 },
+      { name: 'homebridge-b', error: 'Error fetching package data' },
+    ],
+  });
+
+  assert.match(markdown, /collection failed ❌/);
+  assert.match(markdown, /> Discovered 2 plugins but npm reports 5915/);
+  assert.match(markdown, /1 packages could not be fetched: `homebridge-b`/);
+  assert.match(markdown, /verified list was empty/);
+  assert.match(markdown, /No npm weekly download counts were refreshed/);
+});
+
+test('buildCollectionSummary handles a failure before discovery completes', () => {
+  const markdown = buildCollectionSummary({ error: 'Error fetching page 1: 503 Service Unavailable', durationMs: 6000 });
+
+  assert.match(markdown, /collection failed ❌/);
+  assert.match(markdown, /> Error fetching page 1: 503/);
+  assert.doesNotMatch(markdown, /### Discovery/);
+  assert.doesNotMatch(markdown, /### Plugin data/);
+});
+
+test('buildCollectionSummary truncates long name lists', () => {
+  const plugins = Array.from({ length: 25 }, (_, index) => ({ name: `homebridge-${index}` }));
+  const markdown = buildCollectionSummary({ searchCount: 25, candidateCount: 0, plugins });
+
+  assert.match(markdown, /- Added: 25 — .*`homebridge-19`, … and 5 more/);
+  assert.doesNotMatch(markdown, /Limited run/);
+  assert.match(buildCollectionSummary({ pluginLimit: 3 }), /Limited run \(PLUGIN_LIMIT=3\): counts and changes are partial/);
 });
