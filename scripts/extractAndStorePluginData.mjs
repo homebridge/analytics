@@ -562,12 +562,127 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
   }
 }
 
+function formatNameList(names, max = 20) {
+  if (names.length === 0) return '';
+  const shown = names.slice(0, max).map(name => `\`${name}\``).join(', ');
+  return names.length > max ? `${shown}, … and ${names.length - max} more` : shown;
+}
+
+// Build a Markdown summary of a collection run for the GitHub Actions job page
+export function buildCollectionSummary(run) {
+  const {
+    error = null,
+    durationMs = null,
+    reportedTotal = null,
+    searchCount = null,
+    candidateCount = null,
+    plugins = null,
+    previousNames = [],
+    verifiedListSize = null,
+    startedAt = null,
+    pluginLimit = null,
+  } = run;
+  const lines = [];
+  const minutes = durationMs === null ? null : (durationMs / 60000).toFixed(1);
+
+  lines.push(`## Homebridge analytics collection ${error ? 'failed ❌' : 'succeeded ✅'}`);
+  lines.push('');
+  if (error) {
+    lines.push(`> ${error}`);
+    lines.push('');
+  }
+  if (minutes !== null) lines.push(`Run time: ${minutes} minutes`, '');
+  if (pluginLimit !== null) lines.push(`> Limited run (PLUGIN_LIMIT=${pluginLimit}): counts and changes are partial`, '');
+
+  if (searchCount !== null) {
+    const keptCandidates = plugins && candidateCount !== null ? Math.max(0, plugins.length - searchCount) : null;
+    lines.push('### Discovery', '');
+    lines.push('| Source | Count |', '| --- | ---: |');
+    lines.push(`| npm reported total | ${reportedTotal ?? 'unknown'} |`);
+    lines.push(`| npm search (capped at 5,250) | ${searchCount} |`);
+    if (candidateCount !== null) lines.push(`| Extra \`homebridge-*\` packages from listing | ${candidateCount} |`);
+    if (keptCandidates !== null) {
+      lines.push(`| Extra packages with \`homebridge-plugin\` keyword | ${keptCandidates} |`);
+      lines.push(`| Extra packages dropped (no keyword or fetch error) | ${candidateCount - keptCandidates} |`);
+    }
+    if (plugins) lines.push(`| **Plugins collected** | **${plugins.length}** |`);
+    lines.push('');
+  }
+
+  if (!plugins) return lines.join('\n');
+
+  const fetchErrors = plugins.filter(plugin => plugin.error).map(plugin => plugin.name);
+  const valid = plugins.filter(plugin => !plugin.error);
+  const startedTime = startedAt ? Date.parse(startedAt) : NaN;
+  const downloadsRefreshed = valid.filter(plugin => Date.parse(plugin.npmDownloadsUpdatedAt) >= startedTime).length;
+  const weeklyDownloads = valid.reduce((sum, plugin) => sum + (plugin.npmDownloads || 0), 0);
+  const currentNames = new Set(plugins.map(plugin => plugin.name));
+  const previousSet = new Set(previousNames);
+  const added = plugins.map(plugin => plugin.name).filter(name => !previousSet.has(name));
+  const removed = previousNames.filter(name => !currentNames.has(name));
+
+  lines.push('### Plugin data', '');
+  lines.push('| Metric | Count |', '| --- | ---: |');
+  lines.push(`| Package details fetched | ${valid.length} |`);
+  lines.push(`| Package detail errors | ${fetchErrors.length} |`);
+  lines.push(`| Verified plugins (verified list size) | ${valid.filter(plugin => plugin.verified).length} (${verifiedListSize ?? 'unknown'}) |`);
+  lines.push(`| Homebridge 2.0 ready | ${valid.filter(plugin => plugin.homebridge2ready === 'Supported').length} |`);
+  lines.push(`| Deprecated | ${valid.filter(plugin => plugin.deprecated).length} |`);
+  lines.push(`| npm weekly downloads refreshed this run | ${downloadsRefreshed} |`);
+  lines.push(`| Total npm weekly downloads | ${weeklyDownloads.toLocaleString('en-US')} |`);
+  lines.push(`| With GitHub star count | ${valid.filter(plugin => Number.isInteger(plugin.githubStars)).length} |`);
+  lines.push('');
+
+  lines.push('### Changes since previous run', '');
+  lines.push(`- Added: ${added.length}${added.length ? ` — ${formatNameList(added)}` : ''}`);
+  lines.push(`- Removed: ${removed.length}${removed.length ? ` — ${formatNameList(removed)}` : ''}`);
+  lines.push('');
+
+  const warnings = [];
+  if (fetchErrors.length) warnings.push(`${fetchErrors.length} packages could not be fetched: ${formatNameList(fetchErrors)}`);
+  if (verifiedListSize === 0) warnings.push('The Homebridge verified list was empty or could not be fetched; no plugins are marked verified');
+  if (valid.length && downloadsRefreshed === 0) warnings.push('No npm weekly download counts were refreshed this run');
+  if (warnings.length) {
+    lines.push('### Warnings ⚠️', '');
+    for (const warning of warnings) lines.push(`- ${warning}`);
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+function writeStepSummary(markdown) {
+  const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+  if (!summaryFile) return;
+  try {
+    fs.appendFileSync(summaryFile, `${markdown}\n`);
+  } catch (error) {
+    console.error(`Could not write GitHub step summary: ${error.message}`);
+  }
+}
+
 // Main function to extract and store plugin data
 async function extractAndStoreData() {
+  const startedAt = new Date().toISOString();
   const previousPlugins = readPreviousPluginData();
+  const run = { startedAt, previousNames: [...previousPlugins.keys()], pluginLimit: PLUGIN_LIMIT === Infinity ? null : PLUGIN_LIMIT };
+  try {
+    await collectPluginData(previousPlugins, run);
+  } catch (error) {
+    run.error = error.message;
+    throw error;
+  } finally {
+    run.durationMs = Date.now() - Date.parse(startedAt);
+    writeStepSummary(buildCollectionSummary(run));
+  }
+}
+
+async function collectPluginData(previousPlugins, run) {
   const { searchNames, candidateNames, reportedTotal } = await discoverHomebridgePlugins();
+  Object.assign(run, { searchCount: searchNames.length, candidateCount: candidateNames.length, reportedTotal });
   const packageNames = [...searchNames, ...candidateNames].slice(0, PLUGIN_LIMIT);
   const verifiedPlugins = await getVerifiedPlugins();
+  run.verifiedListSize = verifiedPlugins.length;
   const githubDownloads = await getReleaseDownloads(readPreviousGithubDownloads());
   const npmDownloadData = await getNpmLastWeekDownloads(packageNames, previousPlugins);
 
@@ -579,6 +694,7 @@ async function extractAndStoreData() {
   );
   const pluginsWithDetails = selectHomebridgePlugins(packageDetails, searchNames);
   console.log(`Plugin discovery: kept ${pluginsWithDetails.length} of ${packageDetails.length} packages (npm reported ${reportedTotal})`);
+  run.plugins = pluginsWithDetails;
   assertDiscoveryComplete(pluginsWithDetails.length, reportedTotal);
 
   const allPluginNames = pluginsWithDetails.map(plugin => plugin.name);
