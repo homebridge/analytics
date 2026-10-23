@@ -1,8 +1,8 @@
-# Plugin Summary Report (Based on Latest Release) - Thu Oct 22 2026
+# Plugin Summary Report (Based on Latest Release) - Fri Oct 23 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Wed Oct 22 2025 - Thu Oct 22 2026
+- Latest Release within 12 months: Thu Oct 23 2025 - Fri Oct 23 2026
 - Homebridge 2 Ready: Not ready
 
 **Total Plugins Homebridge 2 Ready:** 405<br>
@@ -10,7 +10,7 @@
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 658 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 286 | true | Not ready |
 | @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 20 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 30 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 8 | true | Not ready |

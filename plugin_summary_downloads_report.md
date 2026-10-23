@@ -1,4 +1,4 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Thu Oct 22 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Fri Oct 23 2026
 
 **Filters Applied:**
 - Verified: true
@@ -10,7 +10,7 @@
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
-| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 658 | true | Not ready |
+| @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 286 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 30 | true | Not ready |
 | homebridge-airzone-cloud | Francisco Javier Horrillo Sancho | 2025-01-30T21:45:01.614Z | 30 | true | Not ready |
 | homebridge-anthemreceiver | ehylands | 2023-10-07T15:04:30.306Z | 22 | true | Not ready |
