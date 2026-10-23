@@ -5,7 +5,7 @@
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 199<br>
+**Total Plugins Homebridge 2 Ready:** 200<br>
 **Total Plugins Not Homebridge 2 Ready:** 52
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
