@@ -177,8 +177,30 @@ export async function addGithubStars(plugins, previousPlugins = new Map(), optio
   return plugins;
 }
 
+// Fetch a URL, retrying throttled and transient server errors
+async function fetchWithRetry(url, { fetchFn, sleepFn, maxRetries, label }) {
+  let response;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    response = await fetchFn(url);
+    if (response.ok || ![429, 500, 502, 503, 504].includes(response.status) || attempt === maxRetries) break;
+
+    const retryAfterHeader = response.headers?.get?.('retry-after');
+    const retryAfter = retryAfterHeader === null || retryAfterHeader === undefined ? NaN : Number(retryAfterHeader);
+    const retryDelay = Number.isFinite(retryAfter) ? Math.max(1000, retryAfter * 1000) : 2000 * (2 ** attempt);
+    console.warn(`${label} returned ${response.status}; retrying in ${retryDelay}ms`);
+    await sleepFn(retryDelay);
+  }
+  return response;
+}
+
 // Fetch list of homebridge plugins with pagination
 export async function getHomebridgePlugins(options = {}) {
+  return (await searchHomebridgePlugins(options)).names;
+}
+
+// npm search never returns results beyond offset 5,000 (size 250), so it can only reach the first 5,250 matches.
+// Requests past that point silently return the first page again, which the repeated-page check below detects.
+export async function searchHomebridgePlugins(options = {}) {
   const resultsPerPage = options.resultsPerPage || 250;
   const pluginLimit = options.pluginLimit ?? PLUGIN_LIMIT;
   const fetchFn = options.fetchFn || fetch;
@@ -195,17 +217,7 @@ export async function getHomebridgePlugins(options = {}) {
     while (keepFetching) {
       console.log(`Fetching page ${page + 1}...`);
       const url = `https://registry.npmjs.org/-/v1/search?text=keywords:homebridge-plugin&size=${resultsPerPage}&from=${page * resultsPerPage}`;
-      let response;
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        response = await fetchFn(url);
-        if (response.ok || ![429, 500, 502, 503, 504].includes(response.status) || attempt === maxRetries) break;
-
-        const retryAfterHeader = response.headers?.get?.('retry-after');
-        const retryAfter = retryAfterHeader === null || retryAfterHeader === undefined ? NaN : Number(retryAfterHeader);
-        const retryDelay = Number.isFinite(retryAfter) ? Math.max(1000, retryAfter * 1000) : 2000 * (2 ** attempt);
-        console.warn(`npm plugin search returned ${response.status}; retrying in ${retryDelay}ms`);
-        await sleepFn(retryDelay);
-      }
+      const response = await fetchWithRetry(url, { fetchFn, sleepFn, maxRetries, label: 'npm plugin search' });
       if (response.ok) {
         const data = await response.json();
         const objects = Array.isArray(data.objects) ? data.objects : [];
@@ -222,7 +234,7 @@ export async function getHomebridgePlugins(options = {}) {
         const reachedReportedTotal = reportedTotal !== null && searchedResults >= reportedTotal;
 
         if (addedOnPage === 0 && reportedTotal !== null && pluginsByName.size < reportedTotal) {
-          console.warn(`npm repeated a search page after ${pluginsByName.size} unique plugins; reported total is ${reportedTotal}`);
+          console.log(`npm search window ended after ${pluginsByName.size} unique plugins; reported total is ${reportedTotal}`);
         }
 
         if (objects.length < resultsPerPage || pluginsByName.size >= pluginLimit || reachedReportedTotal || addedOnPage === 0) {
@@ -242,11 +254,79 @@ export async function getHomebridgePlugins(options = {}) {
     const effectiveLimit = Math.min(pluginLimit, reportedTotal ?? Infinity);
     const plugins = [...pluginsByName.keys()].slice(0, effectiveLimit);
     console.log(`Fetched ${plugins.length} unique plugins${reportedTotal === null ? '' : ` (npm reported ${reportedTotal})`}`);
-    return plugins;
+    return { names: plugins, reportedTotal };
 
   } catch (error) {
     console.error('Error fetching plugin list from npm:', error);
     throw error;
+  }
+}
+
+// List every unscoped package named homebridge-* from the npm replication database.
+// Homebridge only loads plugins named homebridge-* or @scope/homebridge-*, and this listing has no result cap.
+export async function getHomebridgeNamedPackages(options = {}) {
+  const pageSize = options.pageSize || 10000;
+  const fetchFn = options.fetchFn || fetch;
+  const sleepFn = options.sleepFn || sleep;
+  const maxRetries = options.maxRetries ?? 2;
+  const baseUrl = 'https://replicate.npmjs.com/registry/_all_docs';
+  const endKey = JSON.stringify('homebridge-￰');
+  const names = [];
+  let startKey = JSON.stringify('homebridge-');
+  let lastId = null;
+
+  // The replication endpoint rejects skip and caps limit at 10,000
+  while (true) {
+    const url = `${baseUrl}?startkey=${encodeURIComponent(startKey)}&endkey=${encodeURIComponent(endKey)}&limit=${pageSize}`;
+    const response = await fetchWithRetry(url, { fetchFn, sleepFn, maxRetries, label: 'npm package listing' });
+    if (!response.ok) {
+      throw new Error(`Error listing homebridge-* packages: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    for (const row of rows) {
+      if (row?.id === lastId) continue;
+      if (typeof row?.id === 'string' && row.id.startsWith('homebridge-')) names.push(row.id);
+    }
+    if (rows.length < pageSize) break;
+
+    // Each page restarts at the previous page's last key, which is skipped above
+    lastId = rows.at(-1).id;
+    startKey = JSON.stringify(lastId);
+  }
+
+  console.log(`npm package listing: ${names.length} packages named homebridge-*`);
+  return names;
+}
+
+// Combine npm search (which covers scoped packages) with the uncapped homebridge-* listing
+export async function discoverHomebridgePlugins(options = {}) {
+  const { names: searchNames, reportedTotal } = await searchHomebridgePlugins(options.search);
+  const searchSet = new Set(searchNames);
+  const listedNames = await getHomebridgeNamedPackages(options.listing);
+  const candidateNames = listedNames.filter(name => !searchSet.has(name));
+  console.log(`Plugin discovery: ${searchNames.length} from search, ${candidateNames.length} additional homebridge-* candidates to verify`);
+  return { searchNames, candidateNames, reportedTotal };
+}
+
+export function hasHomebridgePluginKeyword(keywords) {
+  const list = Array.isArray(keywords) ? keywords : typeof keywords === 'string' ? keywords.split(/[\s,]+/) : [];
+  return list.some(keyword => typeof keyword === 'string' && keyword.trim().toLowerCase() === 'homebridge-plugin');
+}
+
+// Search results already matched the keyword; listed-only candidates must declare it in their latest version
+export function selectHomebridgePlugins(packageDetails, searchNames) {
+  const searchSet = new Set(searchNames);
+  return packageDetails.filter(details =>
+    searchSet.has(details.name) || (!details.error && hasHomebridgePluginKeyword(details.keywords))
+  );
+}
+
+export function assertDiscoveryComplete(pluginCount, reportedTotal, pluginLimit = PLUGIN_LIMIT) {
+  if (pluginLimit !== Infinity || reportedTotal === null || reportedTotal === undefined) return;
+  if (pluginCount < reportedTotal) {
+    throw new Error(`Discovered ${pluginCount} plugins but npm reports ${reportedTotal}; refusing to publish incomplete data`);
   }
 }
 
@@ -485,19 +565,25 @@ async function fetchPackageDetails(packageName, verifiedPlugins, githubDownloads
 // Main function to extract and store plugin data
 async function extractAndStoreData() {
   const previousPlugins = readPreviousPluginData();
-  const allPluginNames = await getHomebridgePlugins();
-  fs.writeFileSync('../allPluginNames.json', JSON.stringify(allPluginNames, null, 2));
+  const { searchNames, candidateNames, reportedTotal } = await discoverHomebridgePlugins();
+  const packageNames = [...searchNames, ...candidateNames].slice(0, PLUGIN_LIMIT);
   const verifiedPlugins = await getVerifiedPlugins();
   const githubDownloads = await getReleaseDownloads(readPreviousGithubDownloads());
-  const npmDownloadData = await getNpmLastWeekDownloads(allPluginNames, previousPlugins);
+  const npmDownloadData = await getNpmLastWeekDownloads(packageNames, previousPlugins);
 
-  fs.writeFileSync('../githubDownload.json', JSON.stringify(githubDownloads, null, 2));
   // Limit concurrent requests with pLimit
-  const pluginsWithDetails = await Promise.all(
-    allPluginNames.map(packageName =>
+  const packageDetails = await Promise.all(
+    packageNames.map(packageName =>
       limit(() => fetchPackageDetails(packageName, verifiedPlugins, githubDownloads, npmDownloadData))
     )
   );
+  const pluginsWithDetails = selectHomebridgePlugins(packageDetails, searchNames);
+  console.log(`Plugin discovery: kept ${pluginsWithDetails.length} of ${packageDetails.length} packages (npm reported ${reportedTotal})`);
+  assertDiscoveryComplete(pluginsWithDetails.length, reportedTotal);
+
+  const allPluginNames = pluginsWithDetails.map(plugin => plugin.name);
+  fs.writeFileSync('../allPluginNames.json', JSON.stringify(allPluginNames, null, 2));
+  fs.writeFileSync('../githubDownload.json', JSON.stringify(githubDownloads, null, 2));
   await addGithubStars(pluginsWithDetails, previousPlugins);
 
   // Write the collected data to a JSON file
@@ -506,7 +592,10 @@ async function extractAndStoreData() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  extractAndStoreData();
+  extractAndStoreData().catch(error => {
+    console.error('Data extraction failed:', error.message);
+    process.exitCode = 1;
+  });
 }
 
 async function sleep(ms) {
