@@ -1,20 +1,20 @@
-# Plugin Summary Report (Based on Latest Release) - Sat Oct 24 2026
+# Plugin Summary Report (Based on Latest Release) - Sun Oct 25 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Fri Oct 24 2025 - Sat Oct 24 2026
+- Latest Release within 12 months: Sat Oct 25 2025 - Sun Oct 25 2026
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 409<br>
+**Total Plugins Homebridge 2 Ready:** 414<br>
 **Total Plugins Not Homebridge 2 Ready:** 44
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
 | @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 286 | true | Not ready |
-| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 20 | true | Not ready |
+| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 7 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 31 | true | Not ready |
 | homebridge-alphaess | zerwuffa | 2025-11-19T13:55:50.307Z | 11 | true | Not ready |
-| homebridge-bewave-mqtt | rmarobert | 2026-10-19T17:34:14.650Z | 1411 | true | Not ready |
+| homebridge-bewave-mqtt | rmarobert | 2026-10-24T18:39:31.272Z | 1411 | true | Not ready |
 | homebridge-bigassfans-2 | Joshua Appleman | 2026-10-21T14:38:57.292Z | 231 | true | Not ready |
 | homebridge-clearlight-sauna | Brad Aurisch | 2026-04-13T08:44:28.219Z | 9 | true | Not ready |
 | homebridge-davis-2 | Brendan Keyport | 2026-07-29T23:41:38.907Z | 3 | true | Not ready |
