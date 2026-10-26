@@ -1,4 +1,4 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Sun Oct 25 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Mon Oct 26 2026
 
 **Filters Applied:**
 - Verified: true
@@ -19,7 +19,7 @@
 | homebridge-anthemreceiver | ehylands | 2023-10-07T15:04:30.306Z | 24 | true | Not ready |
 | homebridge-aqicn | David Maher | 2022-03-26T20:35:10.763Z | 24 | true | Not ready |
 | homebridge-bewave-mqtt | rmarobert | 2026-10-24T18:39:31.272Z | 1411 | true | Not ready |
-| homebridge-bigassfans-2 | Joshua Appleman | 2026-10-21T14:38:57.292Z | 231 | true | Not ready |
+| homebridge-bigassfans-2 | Joshua Appleman | 2026-10-26T03:57:09.651Z | 231 | true | Not ready |
 | homebridge-blinds-cmd | HJD https://github.com/hjdhjd | 2020-12-01T00:05:06.063Z | 59 | true | Not ready |
 | homebridge-camera-ffmpeg | northernman, bwp91, sunookitsune | 2021-12-28T22:50:56.261Z | 12528 | true | Not ready |
 | homebridge-camera-ui | SeydX | 2022-04-24T15:52:44.631Z | 86 | true | Not ready |
