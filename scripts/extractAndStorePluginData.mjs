@@ -315,12 +315,20 @@ export function hasHomebridgePluginKeyword(keywords) {
   return list.some(keyword => typeof keyword === 'string' && keyword.trim().toLowerCase() === 'homebridge-plugin');
 }
 
-// Search results already matched the keyword; listed-only candidates must declare it in their latest version
+// Search results already matched the keyword; other candidates must be verified or declare it in their latest version
 export function selectHomebridgePlugins(packageDetails, searchNames) {
   const searchSet = new Set(searchNames);
   return packageDetails.filter(details =>
-    searchSet.has(details.name) || (!details.error && hasHomebridgePluginKeyword(details.keywords))
+    searchSet.has(details.name) || (!details.error && (details.verified || hasHomebridgePluginKeyword(details.keywords)))
   );
+}
+
+// npm search misses some verified plugins, even by exact name, and scoped ones are not in the homebridge-* listing
+export function addMissingVerifiedPlugins(searchNames, candidateNames, verifiedPlugins) {
+  const known = new Set([...searchNames, ...candidateNames]);
+  const missing = [...new Set(verifiedPlugins)].filter(name => typeof name === 'string' && !known.has(name));
+  if (missing.length) console.log(`Plugin discovery: ${missing.length} verified plugins not found by search, fetching by name`);
+  return [...candidateNames, ...missing];
 }
 
 export function assertDiscoveryComplete(pluginCount, reportedTotal, pluginLimit = PLUGIN_LIMIT) {
@@ -332,11 +340,13 @@ export function assertDiscoveryComplete(pluginCount, reportedTotal, pluginLimit 
 
 // Fetch the Homebridge Verified list
 async function getVerifiedPlugins() {
-  const url = 'https://raw.githubusercontent.com/homebridge/verified/latest/verified-plugins.json';
+  const url = 'https://raw.githubusercontent.com/homebridge/plugins/latest/verified-plugins.json';
   try {
     console.log('Fetching Homebridge verified plugins...');
     const response = await fetch(url);
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     const data = await response.json();
+    if (!Array.isArray(data)) throw new Error('verified-plugins.json is not an array');
     const verifiedPluginNames = data;
     console.log(`Fetched ${verifiedPluginNames.length} verified plugins`);
     return verifiedPluginNames;
@@ -348,7 +358,7 @@ async function getVerifiedPlugins() {
 
 // Fetch download count from GitHub releases
 const owner = 'homebridge';
-const repo = 'verified';
+const repo = 'plugins';
 const apiUrl = `https://api.github.com/repos/${owner}/${repo}/releases`;
 
 export async function getReleaseDownloads(previousDownloads = {}, options = {}) {
@@ -600,7 +610,7 @@ export function buildCollectionSummary(run) {
     lines.push('| Source | Count |', '| --- | ---: |');
     lines.push(`| npm reported total | ${reportedTotal ?? 'unknown'} |`);
     lines.push(`| npm search (capped at 5,250) | ${searchCount} |`);
-    if (candidateCount !== null) lines.push(`| Extra \`homebridge-*\` packages from listing | ${candidateCount} |`);
+    if (candidateCount !== null) lines.push(`| Extra packages from \`homebridge-*\` listing and verified list | ${candidateCount} |`);
     if (keptCandidates !== null) {
       lines.push(`| Extra packages with \`homebridge-plugin\` keyword | ${keptCandidates} |`);
       lines.push(`| Extra packages dropped (no keyword or fetch error) | ${candidateCount - keptCandidates} |`);
@@ -678,11 +688,13 @@ async function extractAndStoreData() {
 }
 
 async function collectPluginData(previousPlugins, run) {
-  const { searchNames, candidateNames, reportedTotal } = await discoverHomebridgePlugins();
-  Object.assign(run, { searchCount: searchNames.length, candidateCount: candidateNames.length, reportedTotal });
-  const packageNames = [...searchNames, ...candidateNames].slice(0, PLUGIN_LIMIT);
+  const discovery = await discoverHomebridgePlugins();
+  const { searchNames, reportedTotal } = discovery;
   const verifiedPlugins = await getVerifiedPlugins();
   run.verifiedListSize = verifiedPlugins.length;
+  const candidateNames = addMissingVerifiedPlugins(searchNames, discovery.candidateNames, verifiedPlugins);
+  Object.assign(run, { searchCount: searchNames.length, candidateCount: candidateNames.length, reportedTotal });
+  const packageNames = [...searchNames, ...candidateNames].slice(0, PLUGIN_LIMIT);
   const githubDownloads = await getReleaseDownloads(readPreviousGithubDownloads());
   const npmDownloadData = await getNpmLastWeekDownloads(packageNames, previousPlugins);
 

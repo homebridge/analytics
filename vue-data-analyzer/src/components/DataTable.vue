@@ -143,11 +143,14 @@
 <script>
 import {
   compareStarDataQuality,
+  defaultViewState,
   getWeeklyNpmDownloads,
   hasPotentialGithubMismatch,
   matchesNumericFilter,
   matchesStarDataQualityFilter,
   matchesTransportFilter,
+  viewStateFromQuery,
+  viewStateToQuery,
 } from '../pluginFilters.js';
 import { getPluginTransport } from '../pluginTransports.js';
 
@@ -160,26 +163,8 @@ export default {
   },
   data() {
     return {
-      filters: {
-        name: "",
-        description: "",
-        version: "",
-        owner: "",
-        downloads: "",
-        githubStars: "",
-        starDataQuality: "",
-        created: "",
-        lastUpdated: "",
-        homebridge2Compatibility: "",
-        verified: "",
-        transport: ""
-      },
-      downloadsComparison: 'equal',
-      githubStarsComparison: 'equal',
-      createdComparison: 'after',
-      lastUpdatedComparison: 'after',
-      sortKey: null,
-      sortOrder: 'asc',
+      // Filters and sorting start from the query string so links can share a filtered view
+      ...viewStateFromQuery(window.location.search),
       columns: [
         { key: 'name', label: 'Name' },
         { key: 'description', label: 'Description' },
@@ -196,6 +181,9 @@ export default {
     };
   },
   computed: {
+    viewQuery() {
+      return viewStateToQuery(this);
+    },
     filteredPlugins() {
       return this.plugins.filter(plugin => {
         const downloadsCondition = matchesNumericFilter(
@@ -269,28 +257,15 @@ export default {
       return sorted;
     }
   },
+  watch: {
+    viewQuery(query) {
+      const { pathname, hash } = window.location;
+      window.history.replaceState(window.history.state, '', `${pathname}${query ? `?${query}` : ''}${hash}`);
+    }
+  },
   methods: {
     resetFilters() {
-      this.filters = {
-        name: "",
-        description: "",
-        version: "",
-        owner: "",
-        downloads: "",
-        githubStars: "",
-        starDataQuality: "",
-        created: "",
-        lastUpdated: "",
-        homebridge2Compatibility: "",
-        verified: "",
-        transport: ""
-      };
-      this.downloadsComparison = 'equal';
-      this.githubStarsComparison = 'equal';
-      this.createdComparison = 'after';
-      this.lastUpdatedComparison = 'after';
-      this.sortKey = null;
-      this.sortOrder = 'asc';
+      Object.assign(this, defaultViewState());
     },
     getSortValue(plugin) {
       switch (this.sortKey) {
