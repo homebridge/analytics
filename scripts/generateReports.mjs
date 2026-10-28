@@ -111,10 +111,41 @@ markdownContent += `**Filters Applied:**\n- Verified: true\n- npm Downloads (Las
   console.log('Downloads report saved as plugin_summary_downloads_report.md');
 }
 
+// Keep a pipe in a value from splitting its markdown table cell
+function escapeCell(value) {
+  return String(value ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
+}
+
+// Function to generate a markdown list of every verified plugin
+function generateVerifiedReport(data) {
+  const currentDate = new Date();
+
+  const verifiedPlugins = data.filter(plugin => plugin.verified);
+  verifiedPlugins.sort((a, b) => a.name.localeCompare(b.name));
+  const hb2ReadyCount = verifiedPlugins.filter(plugin => isHomebridge2Ready(plugin) === 'Supported').length;
+
+  // Create the markdown content for verified report
+  let markdownContent = `# Verified Plugins - ${currentDate.toDateString()}\n\n`;
+  markdownContent += `**Total Verified Plugins:** ${verifiedPlugins.length}<br>\n`;
+  markdownContent += `**Homebridge 2 Ready:** ${hb2ReadyCount}\n\n`;
+  markdownContent += '| Name | Description | Owner | Latest Release | npm Downloads (Last Week) | Homebridge 2 Status |\n';
+  markdownContent += '| ---- | ----------- | ----- | -------------- | --------- | ------------------- |\n';
+
+  verifiedPlugins.forEach(plugin => {
+    const name = `[${plugin.name}](https://www.npmjs.com/package/${plugin.name})`;
+    markdownContent += `| ${name} | ${escapeCell(plugin.description)} | ${escapeCell(plugin.owner)} | ${plugin.latestRelease} | ${getWeeklyNpmDownloads(plugin)} | ${isHomebridge2Ready(plugin)} |\n`;
+  });
+
+  // Save the markdown content to a file
+  fs.writeFileSync('../plugin_summary_verified_report.md', markdownContent, 'utf8');
+  console.log('Verified report saved as plugin_summary_verified_report.md');
+}
+
 // Read data from the JSON file
 const rawData = fs.readFileSync('../homebridge_plugins.json', 'utf8');
 const dataSource = JSON.parse(rawData);
 
-// Generate both reports
+// Generate all reports
 generateReleaseDateReport(dataSource);
 generateDownloadsReport(dataSource);
+generateVerifiedReport(dataSource);

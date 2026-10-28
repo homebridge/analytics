@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { addGithubStars, assertDiscoveryComplete, buildCollectionSummary, discoverHomebridgePlugins, extractGithubRepo, getDownloadMetrics, getHomebridgeNamedPackages, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, hasHomebridgePluginKeyword, resolveRepository, searchHomebridgePlugins, selectHomebridgePlugins } from './extractAndStorePluginData.mjs';
+import { addGithubStars, addMissingVerifiedPlugins, assertDiscoveryComplete, buildCollectionSummary, discoverHomebridgePlugins, extractGithubRepo, getDownloadMetrics, getHomebridgeNamedPackages, getHomebridgePlugins, getNpmLastWeekDownloads, getReleaseDownloads, hasHomebridgePluginKeyword, resolveRepository, searchHomebridgePlugins, selectHomebridgePlugins } from './extractAndStorePluginData.mjs';
 import { getPluginTransport } from '../vue-data-analyzer/src/pluginTransports.js';
 
 test('extractGithubRepo supports common npm repository formats', () => {
@@ -361,18 +361,28 @@ test('hasHomebridgePluginKeyword matches arrays and strings case-insensitively',
   assert.equal(hasHomebridgePluginKeyword(undefined), false);
 });
 
-test('selectHomebridgePlugins keeps search results and only keyword-tagged listed candidates', () => {
+test('selectHomebridgePlugins keeps search results, verified plugins and only keyword-tagged listed candidates', () => {
   const details = [
     { name: 'homebridge-searched', keywords: [] },
     { name: 'homebridge-searched-error', error: 'Error fetching package data' },
     { name: 'homebridge-listed-plugin', keywords: ['homebridge-plugin'] },
     { name: 'homebridge-listed-library', keywords: ['homebridge'] },
+    { name: '@scope/homebridge-verified', keywords: [], verified: true },
     { name: 'homebridge-listed-error', error: 'Error fetching package data' },
   ];
 
   const selected = selectHomebridgePlugins(details, ['homebridge-searched', 'homebridge-searched-error']);
 
-  assert.deepEqual(selected.map(plugin => plugin.name), ['homebridge-searched', 'homebridge-searched-error', 'homebridge-listed-plugin']);
+  assert.deepEqual(selected.map(plugin => plugin.name), ['homebridge-searched', 'homebridge-searched-error', 'homebridge-listed-plugin', '@scope/homebridge-verified']);
+});
+
+test('addMissingVerifiedPlugins appends verified names that discovery did not find', () => {
+  const candidates = addMissingVerifiedPlugins(
+    ['homebridge-searched'],
+    ['homebridge-listed'],
+    ['homebridge-searched', 'homebridge-listed', '@scope/homebridge-missed', '@scope/homebridge-missed'],
+  );
+  assert.deepEqual(candidates, ['homebridge-listed', '@scope/homebridge-missed']);
 });
 
 test('assertDiscoveryComplete fails when fewer plugins are found than npm reports', () => {

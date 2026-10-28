@@ -7,6 +7,9 @@ import {
   matchesNumericFilter,
   matchesStarDataQualityFilter,
   matchesTransportFilter,
+  defaultViewState,
+  viewStateFromQuery,
+  viewStateToQuery,
 } from './pluginFilters.js';
 
 test('matchesNumericFilter supports equal, greater, and less comparisons', () => {
@@ -84,4 +87,32 @@ test('compareStarDataQuality places mismatches after matching repositories', () 
   assert.ok(compareStarDataQuality(matching, mismatch) < 0);
   assert.ok(compareStarDataQuality(mismatch, matching) > 0);
   assert.equal(compareStarDataQuality(matching, matching), 0);
+});
+
+test('viewStateFromQuery reads filters, comparisons and sorting', () => {
+  const state = viewStateFromQuery('?verified=true&downloads=100&downloadsComparison=greater&sort=downloads&order=desc&unknown=1');
+  assert.equal(state.filters.verified, 'true');
+  assert.equal(state.filters.downloads, 100);
+  assert.equal(state.downloadsComparison, 'greater');
+  assert.equal(state.sortKey, 'downloads');
+  assert.equal(state.sortOrder, 'desc');
+  assert.equal(state.filters.name, '');
+});
+
+test('viewStateFromQuery ignores non-numeric values for numeric filters', () => {
+  assert.equal(viewStateFromQuery('?githubStars=lots').filters.githubStars, '');
+});
+
+test('viewStateToQuery omits defaults and round-trips', () => {
+  assert.equal(viewStateToQuery(defaultViewState()), '');
+
+  const state = defaultViewState();
+  state.filters.verified = 'true';
+  state.filters.githubStars = 50;
+  state.githubStarsComparison = 'greater';
+  state.sortKey = 'githubStars';
+  state.sortOrder = 'desc';
+  const query = viewStateToQuery(state);
+  assert.equal(query, 'githubStars=50&verified=true&githubStarsComparison=greater&sort=githubStars&order=desc');
+  assert.deepEqual(viewStateFromQuery(query), state);
 });
