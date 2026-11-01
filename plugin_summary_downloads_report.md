@@ -1,12 +1,12 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Sat Oct 31 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Sun Nov 01 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 235<br>
-**Total Plugins Not Homebridge 2 Ready:** 55
+**Total Plugins Homebridge 2 Ready:** 236<br>
+**Total Plugins Not Homebridge 2 Ready:** 56
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
@@ -15,6 +15,7 @@
 | homebridge-androidtv | @louis49 | 2022-06-20T05:51:55.834Z | 42 | true | Not ready |
 | homebridge-aqicn | David Maher | 2022-03-26T20:35:10.763Z | 23 | true | Not ready |
 | homebridge-bewave-mqtt | rmarobert | 2026-10-24T18:39:31.272Z | 242 | true | Not ready |
+| homebridge-bgh-smartcontrol | craiem | 2026-10-31T16:35:26.815Z | 74 | true | Not ready |
 | homebridge-bigassfans-2 | Joshua Appleman | 2026-10-26T03:57:09.651Z | 220 | true | Not ready |
 | homebridge-blinds-cmd | HJD https://github.com/hjdhjd | 2020-12-01T00:05:06.063Z | 35 | true | Not ready |
 | homebridge-camera-ffmpeg | northernman, bwp91, sunookitsune | 2021-12-28T22:50:56.261Z | 14757 | true | Not ready |
