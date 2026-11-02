@@ -1,20 +1,21 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Sun Nov 01 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Mon Nov 02 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 236<br>
-**Total Plugins Not Homebridge 2 Ready:** 56
+**Total Plugins Homebridge 2 Ready:** 242<br>
+**Total Plugins Not Homebridge 2 Ready:** 57
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
 | ---- | ----- | -------------- | --------- | -------- | ------------------- |
 | @0x5e/homebridge-tuya-platform | 0x5e | 2026-04-16T15:43:50.241Z | 644 | true | Not ready |
+| @smarterhomeapp/homebridge-vantage | smarterhomeapp | 2026-09-18T05:21:20.227Z | 22 | true | Not ready |
 | homebridge-adb | dwaan | 2026-10-02T17:35:56.646Z | 53 | true | Not ready |
 | homebridge-androidtv | @louis49 | 2022-06-20T05:51:55.834Z | 42 | true | Not ready |
 | homebridge-aqicn | David Maher | 2022-03-26T20:35:10.763Z | 23 | true | Not ready |
-| homebridge-bewave-mqtt | rmarobert | 2026-10-24T18:39:31.272Z | 242 | true | Not ready |
+| homebridge-bewave-mqtt | rmarobert | 2026-11-01T18:39:14.760Z | 242 | true | Not ready |
 | homebridge-bgh-smartcontrol | craiem | 2026-10-31T16:35:26.815Z | 74 | true | Not ready |
 | homebridge-bigassfans-2 | Joshua Appleman | 2026-10-26T03:57:09.651Z | 220 | true | Not ready |
 | homebridge-blinds-cmd | HJD https://github.com/hjdhjd | 2020-12-01T00:05:06.063Z | 35 | true | Not ready |
