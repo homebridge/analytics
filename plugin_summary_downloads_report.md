@@ -1,11 +1,11 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Mon Nov 09 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Tue Nov 10 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 356<br>
+**Total Plugins Homebridge 2 Ready:** 358<br>
 **Total Plugins Not Homebridge 2 Ready:** 103
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
