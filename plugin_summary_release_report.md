@@ -1,11 +1,11 @@
-# Plugin Summary Report (Based on Latest Release) - Tue Nov 24 2026
+# Plugin Summary Report (Based on Latest Release) - Wed Nov 25 2026
 
 **Filters Applied:**
 - Verified: true
-- Latest Release within 12 months: Mon Nov 24 2025 - Tue Nov 24 2026
+- Latest Release within 12 months: Tue Nov 25 2025 - Wed Nov 25 2026
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 462<br>
+**Total Plugins Homebridge 2 Ready:** 463<br>
 **Total Plugins Not Homebridge 2 Ready:** 43
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
@@ -33,7 +33,7 @@
 | homebridge-myplaceiq | Ben Burt | 2026-10-21T23:20:48.867Z | 18 | true | Not ready |
 | homebridge-nanit-pro | GhostOnyx | 2026-11-14T11:35:03.201Z | 54 | true | Not ready |
 | homebridge-netatmo-home-control | barichon21000 | 2026-07-15T18:41:36.881Z | 16 | true | Not ready |
-| homebridge-nuheat2 | Joshua Appleman | 2026-11-18T03:53:56.899Z | 248 | true | Not ready |
+| homebridge-nuheat2 | Joshua Appleman | 2026-11-24T23:13:42.900Z | 248 | true | Not ready |
 | homebridge-nuvo | Will MacCormack | 2026-05-11T21:12:23.051Z | 50 | true | Not ready |
 | homebridge-openclaw | davidevp | 2026-02-20T04:34:41.560Z | 13 | true | Not ready |
 | homebridge-openrgb | Dallas Hoffman | 2025-12-04T04:37:52.216Z | 51 | true | Not ready |

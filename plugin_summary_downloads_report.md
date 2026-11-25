@@ -1,11 +1,11 @@
-# Plugin Summary Report (Based on npm Downloads Last Week) - Tue Nov 24 2026
+# Plugin Summary Report (Based on npm Downloads Last Week) - Wed Nov 25 2026
 
 **Filters Applied:**
 - Verified: true
 - npm Downloads (Last Week) > 20
 - Homebridge 2 Ready: Not ready
 
-**Total Plugins Homebridge 2 Ready:** 402<br>
+**Total Plugins Homebridge 2 Ready:** 403<br>
 **Total Plugins Not Homebridge 2 Ready:** 167
 
 | Name | Owner | Latest Release | npm Downloads (Last Week) | Verified | Homebridge 2 Status |
@@ -108,7 +108,7 @@
 | homebridge-mylink | dgreif | 2021-09-18T23:02:37.335Z | 24 | true | Not ready |
 | homebridge-nanit-pro | GhostOnyx | 2026-11-14T11:35:03.201Z | 54 | true | Not ready |
 | homebridge-ness-d16x | anekol | 2022-07-31T01:37:07.719Z | 21 | true | Not ready |
-| homebridge-nuheat2 | Joshua Appleman | 2026-11-18T03:53:56.899Z | 248 | true | Not ready |
+| homebridge-nuheat2 | Joshua Appleman | 2026-11-24T23:13:42.900Z | 248 | true | Not ready |
 | homebridge-nukiio | benzman81 | 2023-08-20T13:48:41.210Z | 158 | true | Not ready |
 | homebridge-nuvo | Will MacCormack | 2026-05-11T21:12:23.051Z | 50 | true | Not ready |
 | homebridge-octoprint-motion | David Maher | 2021-05-08T17:19:51.992Z | 39 | true | Not ready |
